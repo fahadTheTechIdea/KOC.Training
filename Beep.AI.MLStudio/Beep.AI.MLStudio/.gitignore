@@ -10,7 +10,7 @@ build/
 .venv/
 venv/
 ENV/
-
+python-embedded/
 # Flask
 instance/
 *.db

@@ -1,0 +1,49 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "H:/dev/iconPacks/imgs/3254044-laboratory"
+		},
+		{
+			"path": "H:/dev/iconPacks/imgs/4482096-health-insurance"
+		},
+		{
+			"path": "H:/dev/iconPacks/imgs/4514697-renewable-energy"
+		},
+		{
+			"path": "H:/dev/iconPacks/imgs/4815152-sustainable-energy"
+		},
+		{
+			"path": "H:/dev/iconPacks/imgs/6629098-smart-meters"
+		},
+		{
+			"path": "H:/dev/iconPacks/imgs/AI"
+		},
+		{
+			"path": "H:/dev/iconPacks/imgs/1021175-winning"
+		},
+		{
+			"path": "H:/dev/iconPacks/imgs/1064238-industrial-process"
+		},
+		{
+			"path": "H:/dev/iconPacks/imgs/4545243-nuclear-energy"
+		},
+		{
+			"path": "H:/dev/iconPacks/imgs/5725015-oil-and-petroleum"
+		},
+		{
+			"path": "H:/dev/iconPacks/imgs/6315514-oil-and-gas-industry"
+		},
+		{
+			"path": "H:/dev/iconPacks/imgs/7258558-oil-and-gas-industry"
+		},
+		{
+			"path": "H:/dev/iconPacks/imgs/9512427-leadership"
+		}
+	],
+	"settings": {
+		"powershell.cwd": "KOC.Training"
+	}
+}

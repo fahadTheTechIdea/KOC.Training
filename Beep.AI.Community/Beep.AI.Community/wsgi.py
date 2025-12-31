@@ -6,7 +6,8 @@ import sys
 import os
 
 # Add the application directory to the Python path
-path = '/home/yourusername/Beep.AI.Community/Beep.AI.Community'
+# Update 'yourusername' with your PythonAnywhere username
+path = '/home/yourusername/KOC.Training/Beep.AI.Community/Beep.AI.Community'
 if path not in sys.path:
     sys.path.insert(0, path)
 

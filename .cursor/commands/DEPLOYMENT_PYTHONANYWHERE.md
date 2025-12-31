@@ -34,6 +34,35 @@ This guide explains how to deploy both **Beep.AI.MLStudio** and **Beep.AI.Commun
 2. Upload via PythonAnywhere's Files tab
 3. Extract in your home directory
 
+## What to Copy and What to Exclude
+
+### ✅ **INCLUDE These Files/Folders:**
+- `app/` - All application code
+- `templates/` - HTML templates
+- `static/` - CSS, JS, images, assets
+- `migrations/` - Database migration files
+- `scripts/` - Utility scripts (if needed)
+- `requirements.txt` - Python dependencies
+- `wsgi.py` - WSGI entry point (update paths!)
+- `config.example.json` - Configuration template
+- `README.md` - Documentation (optional)
+
+### ❌ **EXCLUDE These Files/Folders:**
+- `python-embedded/` - **Windows-specific, NOT needed on Linux**
+- `.venv/` or `venv/` - **Will be created on PythonAnywhere**
+- `__pycache__/` - Python cache files
+- `*.db` or `*.sqlite` - Database files (will be created fresh)
+- `instance/` - Local instance folder (will be created)
+- `.env` - Environment variables (configure via Web tab instead)
+- `uploads/` - User uploads (can recreate structure, but empty is fine)
+- `*.log` - Log files
+- `.git/` - Git repository (if using Git, clone instead)
+- `run.bat`, `run.sh`, `run.command` - Local run scripts (not needed)
+- `setup_embedded_python.*` - Windows setup scripts
+
+### Quick Copy Command (if using Git):
+The easiest way is to use Git (Option A above). If you must copy manually, create a zip excluding the above items.
+
 ## Step 2: Set Up Python Environment
 
 ### For Beep.AI.Community:
