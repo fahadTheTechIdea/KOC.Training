@@ -1,102 +1,283 @@
 {% extends "base.html" %}
 
-{% block title %}Beep ML Studio - Machine Learning Made Simple{% endblock %}
+{% block title %}{{ branding.app_name if branding else 'KOC A.I. Digital Campus' }} - Welcome{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Landing Page Styles */
+    /* Landing Page Professional Styles - Enhanced */
     .landing-hero {
-        background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
-        color: var(--text-on-primary);
-        padding: 6rem 0 4rem;
+        background: linear-gradient(135deg, #003366 0%, #004080 50%, #00509e 100%);
+        background-attachment: fixed;
+        color: white;
+        padding: 3rem 0; /* Reduced padding */
         position: relative;
         overflow: hidden;
-        min-height: 80vh;
+        min-height: 55vh; /* Reduced min-height for more compact banner */
         display: flex;
         align-items: center;
     }
     
+    /* Enhanced animated background elements - more subtle */
     .landing-hero::before {
         content: '';
         position: absolute;
-        top: -50%;
+        top: -30%;
         right: -10%;
-        width: 600px;
-        height: 600px;
-        background: var(--theme-primary-transparent);
+        width: 700px;
+        height: 700px;
+        background: radial-gradient(circle, rgba(255,215,0,0.08) 0%, rgba(255,215,0,0.03) 40%, transparent 70%);
         border-radius: 50%;
-        opacity: 0.3;
+        animation: float 25s ease-in-out infinite;
+        filter: blur(50px);
+        opacity: 0.6;
     }
     
     .landing-hero::after {
         content: '';
         position: absolute;
-        bottom: -30%;
-        left: -5%;
-        width: 400px;
-        height: 400px;
-        background: var(--theme-primary-transparent);
+        bottom: -20%;
+        left: -8%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 50%, transparent 80%);
         border-radius: 50%;
-        opacity: 0.2;
+        animation: float 20s ease-in-out infinite reverse;
+        filter: blur(40px);
+        opacity: 0.5;
+    }
+    
+    /* Additional decorative element - more subtle */
+    .landing-hero .decorative-accent {
+        position: absolute;
+        top: 15%;
+        right: 3%;
+        width: 250px;
+        height: 250px;
+        background: linear-gradient(135deg, rgba(255,215,0,0.06) 0%, transparent 100%);
+        border-radius: 50%;
+        animation: pulse 4s ease-in-out infinite;
+        z-index: 0;
+        opacity: 0.5;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+        33% { transform: translate(40px, -40px) scale(1.15) rotate(5deg); }
+        66% { transform: translate(-20px, 20px) scale(0.95) rotate(-3deg); }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 0.6; transform: scale(1); }
+        50% { opacity: 0.9; transform: scale(1.1); }
     }
     
     .hero-content {
         position: relative;
-        z-index: 1;
+        z-index: 2;
     }
     
     .hero-title {
         font-size: 3.5rem;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.4);
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+        animation: fadeInUp 0.9s ease-out;
+        color: #ffffff;
+        display: flex;
+        align-items: center; /* Center logo vertically with text block */
+    }
+    
+    .hero-title img {
+        flex-shrink: 0;
+        align-self: center; /* Ensure logo stays centered */
+        margin-right: 1rem;
     }
     
     .hero-subtitle {
-        font-size: 1.5rem;
-        margin-bottom: 2rem;
+        font-size: 1.4rem; /* Slightly smaller subtitle */
+        margin-bottom: 1rem; /* Reduced margin */
         opacity: 0.95;
-        font-weight: 300;
+        font-weight: 400;
+        animation: fadeInUp 1.1s ease-out;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        letter-spacing: 0.01em;
+        color: rgba(255,255,255,0.95);
+    }
+    
+    .hero-description {
+        font-size: 1.05rem; /* Slightly smaller description */
+        line-height: 1.6;
+        margin-top: 0.5rem; /* Reduced margin */
+        margin-bottom: 1.5rem; /* Reduced margin */
+        opacity: 0.9;
+        max-width: 750px;
+        animation: fadeInUp 1.3s ease-out;
+        text-shadow: 0 1px 8px rgba(0,0,0,0.25);
+        color: rgba(255,255,255,0.9);
     }
     
     .hero-cta {
         display: flex;
-        gap: 1rem;
+        gap: 1rem; /* Reduced gap */
         flex-wrap: wrap;
+        animation: fadeInUp 1.4s ease-out;
+        margin-top: 1.5rem; /* Reduced margin */
+    }
+    
+    .hero-cta .btn {
+        font-weight: 600;
+        padding: 0.875rem 2rem;
+        font-size: 1.1rem;
+        border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .hero-cta .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    
+    .hero-cta .btn-light {
+        background: rgba(255,255,255,0.95);
+        color: #003366;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+    
+    .hero-cta .btn-outline-light {
+        background: rgba(255,255,255,0.1);
+        border: 2px solid rgba(255,255,255,0.5);
+        backdrop-filter: blur(10px);
+        color: white;
+    }
+    
+    .hero-cta .btn-outline-light:hover {
+        background: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.8);
+    }
+    
+    .hero-icon-grid {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-top: 2rem; /* Reduced margin */
+        animation: fadeIn 1.6s ease-out;
+    }
+    
+    .hero-icon-item {
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(15px);
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        border-radius: 16px;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
+    
+    .hero-icon-item:hover {
+        transform: translateY(-8px) scale(1.08);
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 215, 0, 0.6);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+    
+    .hero-icon-item img {
+        width: 56px;
+        height: 56px;
+        filter: brightness(0) invert(1);
+        margin-bottom: 0.75rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .hero-icon-item:hover img {
+        transform: scale(1.15) rotate(5deg);
+    }
+    
+    .hero-icon-item small {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: rgba(255,255,255,0.95);
+        text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
     
     .feature-section {
-        padding: 5rem 0;
-        background: var(--bg-primary);
+        padding: 6rem 0;
+        background: var(--bg-surface);
     }
     
     .feature-card {
-        background: var(--bg-surface);
+        background: var(--bg-surface-elevated);
         border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        padding: 2rem;
+        border-radius: 16px;
+        padding: 2.5rem;
         height: 100%;
-        transition: all var(--transition-duration) var(--transition-easing);
+        transition: all 0.4s ease;
         box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .feature-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--theme-primary), var(--theme-secondary));
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.4s ease;
+    }
+    
+    .feature-card:hover::after {
+        transform: scaleX(1);
     }
     
     .feature-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-lg);
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
         border-color: var(--theme-primary);
     }
     
     .feature-icon {
-        width: 80px;
-        height: 80px;
+        width: 90px;
+        height: 90px;
         background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
-        border-radius: var(--radius-lg);
+        border-radius: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
         margin-bottom: 1.5rem;
         font-size: 2.5rem;
-        color: var(--text-on-primary);
+        color: white;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover .feature-icon {
+        transform: rotate(-5deg) scale(1.1);
     }
     
     .feature-title {
@@ -108,63 +289,29 @@
     
     .feature-description {
         color: var(--text-secondary);
-        line-height: 1.6;
+        line-height: 1.7;
     }
     
-    .stats-section {
-        background: var(--bg-surface);
-        padding: 4rem 0;
-        border-top: 1px solid var(--border-color);
-        border-bottom: 1px solid var(--border-color);
-    }
-    
-    .stat-item {
-        text-align: center;
-        padding: 1.5rem;
-    }
-    
-    .stat-value {
-        font-size: 3rem;
-        font-weight: 700;
-        color: var(--theme-primary);
-        margin-bottom: 0.5rem;
-    }
-    
-    .stat-label {
-        color: var(--text-secondary);
-        font-size: 1.1rem;
-    }
-    
-    .cta-section {
-        background: linear-gradient(135deg, var(--bg-surface-elevated) 0%, var(--bg-surface) 100%);
-        padding: 5rem 0;
-        text-align: center;
-    }
-    
-    .cta-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        color: var(--text-primary);
-    }
-    
-    .cta-description {
-        font-size: 1.2rem;
-        color: var(--text-secondary);
-        margin-bottom: 2rem;
+    @media (max-width: 992px) {
+        .landing-hero {
+            padding: 4rem 0 3rem;
+            min-height: 70vh;
+        }
+        .hero-title {
+            font-size: 2.5rem; /* Reduced for tablet */
+        }
     }
     
     @media (max-width: 768px) {
         .hero-title {
-            font-size: 2.5rem;
+            font-size: 2rem; /* Reduced for mobile */
         }
-        
         .hero-subtitle {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
         }
-        
-        .feature-section {
-            padding: 3rem 0;
+        .hero-icon-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
         }
     }
 </style>
@@ -173,32 +320,80 @@
 {% block content %}
 <!-- Hero Section -->
 <section class="landing-hero">
+    <div class="decorative-accent"></div>
     <div class="container">
         <div class="hero-content">
             <div class="row align-items-center">
-                <div class="col-lg-6">
+                <div class="col-lg-7">
                     <h1 class="hero-title">
-                        <i class="bi bi-cpu-fill me-3"></i>
-                        Machine Learning Made Simple
+                        {% if branding and branding.logo_url %}
+                        <img src="{{ branding.logo_url }}" alt="{{ branding.app_name }}" height="70" class="me-3" style="filter: brightness(0) invert(1);">
+                        {% endif %}
+                        <span>
+                            {% if branding and branding.app_name %}
+                                {{ branding.app_name }}
+                            {% else %}
+                                KOC A.I. Digital Campus
+                            {% endif %}
+                        </span>
                     </h1>
                     <p class="hero-subtitle">
-                        Build, train, and deploy ML models with our intuitive visual workflow builder. 
-                        No coding required, but full Python support when you need it.
+                        {% if branding and branding.tagline %}
+                            {{ branding.tagline }}
+                        {% else %}
+                            Knowledge Reservoir - Explore, Learn, Excel
+                        {% endif %}
+                    </p>
+                    <p class="hero-description">
+                        KOC A.I. Digital Campus is not just an application; it is a "Knowledge Reservoir." Just as KOC explores the earth for hydrocarbons, this campus explores the workforce for new skills. It provides a safe "sandbox" where employees can refine their expertise before applying it to critical production data, ensuring that KOC's digital future.
                     </p>
                     <div class="hero-cta">
-                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-light btn-lg">
-                            <i class="bi bi-rocket-takeoff"></i> Get Started
+                        {% if current_user %}
+                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-light btn-lg px-4 py-3">
+                            <i class="bi bi-speedometer2 me-2"></i> Go to Dashboard
                         </a>
-                        <a href="#features" class="btn btn-outline-light btn-lg">
-                            <i class="bi bi-info-circle"></i> Learn More
+                        {% else %}
+                        <a href="{{ url_for('auth.login_page') }}" class="btn btn-light btn-lg px-4 py-3">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> Get Started
                         </a>
+                        <a href="#features" class="btn btn-outline-light btn-lg px-4 py-3">
+                            <i class="bi bi-info-circle me-2"></i> Learn More
+                        </a>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Icon Grid -->
+                    <div class="hero-icon-grid">
+                        <div class="hero-icon-item">
+                            <img src="{{ url_for('static', filename='images/features/oil-platform.png') }}" alt="Oil & Gas" onerror="this.src='{{ url_for('static', filename='images/features/ai-ml/general/057-oil-platform.png') }}'; this.onerror=null;">
+                            <small>Oil & Gas</small>
+                        </div>
+                        <div class="hero-icon-item">
+                            <img src="{{ url_for('static', filename='images/features/ai-brain.png') }}" alt="AI/ML" onerror="this.src='{{ url_for('static', filename='images/features/ai-ml/general/001-AI.png') }}'; this.onerror=null;">
+                            <small>AI/ML</small>
+                        </div>
+                        <div class="hero-icon-item">
+                            <img src="{{ url_for('static', filename='images/features/healthcare.png') }}" alt="Medical" onerror="this.src='{{ url_for('static', filename='images/features/ai-ml/general/010-stethoscope.png') }}'; this.onerror=null;">
+                            <small>Medical</small>
+                        </div>
+                        <div class="hero-icon-item">
+                            <img src="{{ url_for('static', filename='images/features/energy.png') }}" alt="Energy" onerror="this.src='{{ url_for('static', filename='images/features/ai-ml/general/005-battery.png') }}'; this.onerror=null;">
+                            <small>Energy</small>
+                        </div>
                     </div>
                 </div>
-                <div class="col-lg-6 text-center mt-4 mt-lg-0">
+                <div class="col-lg-5 text-center mt-5 mt-lg-0" style="opacity: 0.12; position: relative; z-index: 1; pointer-events: none;">
+                    {% if branding and branding.logo_url %}
+                    <img src="{{ branding.logo_url }}" 
+                         alt="{{ branding.app_name }}" 
+                         class="img-fluid"
+                         style="max-width: 450px; filter: blur(2px) drop-shadow(0 10px 30px rgba(0,0,0,0.2));">
+                    {% else %}
                     <img src="{{ url_for('static', filename='images/features/ai-ml/general/022-brain.png') }}" 
                          alt="AI Brain" 
                          class="img-fluid"
-                         style="max-width: 400px; opacity: 0.9;">
+                         style="max-width: 400px; opacity: 0.1; filter: blur(2px);">
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -209,7 +404,7 @@
 <section id="features" class="feature-section">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="display-4 mb-3">Powerful Features</h2>
+            <h2 class="display-4 mb-3" style="font-weight: 700; color: var(--text-primary);">Powerful Features</h2>
             <p class="lead text-muted">Everything you need to build and deploy machine learning models</p>
         </div>
         
@@ -294,55 +489,4 @@
         </div>
     </div>
 </section>
-
-<!-- Stats Section -->
-<section class="stats-section">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-item">
-                    <div class="stat-value">100+</div>
-                    <div class="stat-label">ML Algorithms</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-item">
-                    <div class="stat-value">50+</div>
-                    <div class="stat-label">Industry Scenarios</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-item">
-                    <div class="stat-value">10+</div>
-                    <div class="stat-label">Supported Frameworks</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-item">
-                    <div class="stat-value">∞</div>
-                    <div class="stat-label">Possibilities</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- CTA Section -->
-<section class="cta-section">
-    <div class="container">
-        <h2 class="cta-title">Ready to Get Started?</h2>
-        <p class="cta-description">
-            Join thousands of data scientists and ML engineers building amazing models with Beep ML Studio
-        </p>
-        <div class="d-flex justify-content-center gap-3 flex-wrap">
-            <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary btn-lg">
-                <i class="bi bi-rocket-takeoff"></i> Start Building
-            </a>
-            <a href="#features" class="btn btn-outline-primary btn-lg">
-                <i class="bi bi-book"></i> View Documentation
-            </a>
-        </div>
-    </div>
-</section>
 {% endblock %}
-

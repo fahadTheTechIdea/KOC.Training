@@ -1,0 +1,619 @@
+{% extends "base.html" %}
+
+{% block title %}{{ theme.AppName if theme else 'ML Studio' }} - User Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-people me-2"></i>User Management</h2>
+            <p class="text-muted mb-0">Manage users, roles, and permissions</p>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+            <i class="bi bi-person-plus me-2"></i>Create User
+        </button>
+    </div>
+    
+    <!-- Statistics Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card card-modern border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 me-3" style="background: var(--theme-primary-transparent);">
+                            <i class="bi bi-people text-primary" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0" id="total-users">{{ stats.total_users if stats else 0 }}</h3>
+                            <small class="text-muted">Total Users</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-modern border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 me-3" style="background: rgba(40, 167, 69, 0.1);">
+                            <i class="bi bi-person-check text-success" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0" id="active-users">{{ stats.active_users if stats else 0 }}</h3>
+                            <small class="text-muted">Active Users</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-modern border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 me-3" style="background: rgba(220, 53, 69, 0.1);">
+                            <i class="bi bi-shield-check text-danger" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0" id="admin-users">{{ stats.admin_users if stats else 0 }}</h3>
+                            <small class="text-muted">Admins</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-modern border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle p-3 me-3" style="background: rgba(23, 162, 184, 0.1);">
+                            <i class="bi bi-clock-history text-info" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0" id="recent-logins">{{ stats.recent_logins if stats else 0 }}</h3>
+                            <small class="text-muted">Recent Logins (7d)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card card-modern shadow-sm mb-4">
+        <div class="card-body">
+            <form id="filter-form" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" placeholder="Search by username or email...">
+                </div>
+                <div class="col-md-2">
+                    <label for="filter-active" class="form-label">Status</label>
+                    <select class="form-select" id="filter-active">
+                        <option value="">All</option>
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="filter-admin" class="form-label">Role</label>
+                    <select class="form-select" id="filter-admin">
+                        <option value="">All</option>
+                        <option value="true">Admin</option>
+                        <option value="false">User</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search me-1"></i>Filter
+                    </button>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-secondary w-100" onclick="resetFilters()">
+                        <i class="bi bi-x-lg me-1"></i>Clear
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Users Table -->
+    <div class="card card-modern shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 50px;">ID</th>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Last Login</th>
+                            <th>Created</th>
+                            <th style="width: 150px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-transparent">
+            <nav id="pagination-nav">
+                <ul class="pagination pagination-sm mb-0 justify-content-center">
+                    <!-- Pagination will be inserted here -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Create New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="create-user-form">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="new-username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="new-username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new-email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="new-email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new-password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="new-password" name="password" required minlength="8">
+                        <small class="text-muted">Minimum 8 characters</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new-display-name" class="form-label">Display Name</label>
+                        <input type="text" class="form-control" id="new-display-name" name="display_name">
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="new-is-admin" name="is_admin">
+                        <label class="form-check-label" for="new-is-admin">
+                            Grant Admin privileges
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-gear me-2"></i>Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="edit-user-form">
+                <input type="hidden" id="edit-user-id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit-username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="edit-username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="edit-email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-display-name" class="form-label">Display Name</label>
+                        <input type="text" class="form-control" id="edit-display-name" name="display_name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-password" class="form-label">New Password (leave blank to keep current)</label>
+                        <input type="password" class="form-control" id="edit-password" name="password" minlength="8">
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="edit-is-admin" name="is_admin">
+                        <label class="form-check-label" for="edit-is-admin">
+                            Admin privileges
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="edit-is-active" name="is_active">
+                        <label class="form-check-label" for="edit-is-active">
+                            Active
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Confirmation Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Delete User</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete user <strong id="delete-username"></strong>?</p>
+                <p class="text-danger mb-0"><i class="bi bi-exclamation-circle me-1"></i>This action cannot be undone. All user data will be permanently deleted.</p>
+            </div>
+            <div class="modal-footer">
+                <input type="hidden" id="delete-user-id">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteUser()">Delete User</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+const perPage = 20;
+
+// Load users on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadUsers();
+    loadStats();
+});
+
+// Filter form
+document.getElementById('filter-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    currentPage = 1;
+    loadUsers();
+});
+
+// Create user form
+document.getElementById('create-user-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        username: document.getElementById('new-username').value,
+        email: document.getElementById('new-email').value,
+        password: document.getElementById('new-password').value,
+        display_name: document.getElementById('new-display-name').value,
+        is_admin: document.getElementById('new-is-admin').checked
+    };
+    
+    try {
+        const response = await fetch('/admin/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast('User created successfully!', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
+            document.getElementById('create-user-form').reset();
+            loadUsers();
+            loadStats();
+        } else {
+            showToast(data.error || 'Failed to create user', 'error');
+        }
+    } catch (error) {
+        showToast('Error creating user', 'error');
+    }
+});
+
+// Edit user form
+document.getElementById('edit-user-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const userId = document.getElementById('edit-user-id').value;
+    const formData = {
+        username: document.getElementById('edit-username').value,
+        email: document.getElementById('edit-email').value,
+        display_name: document.getElementById('edit-display-name').value,
+        is_admin: document.getElementById('edit-is-admin').checked,
+        is_active: document.getElementById('edit-is-active').checked
+    };
+    
+    const password = document.getElementById('edit-password').value;
+    if (password) {
+        formData.password = password;
+    }
+    
+    try {
+        const response = await fetch(`/admin/users/${userId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast('User updated successfully!', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+            loadUsers();
+        } else {
+            showToast(data.error || 'Failed to update user', 'error');
+        }
+    } catch (error) {
+        showToast('Error updating user', 'error');
+    }
+});
+
+async function loadUsers() {
+    const search = document.getElementById('search').value;
+    const isActive = document.getElementById('filter-active').value;
+    const isAdmin = document.getElementById('filter-admin').value;
+    
+    let url = `/admin/users?page=${currentPage}&per_page=${perPage}`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (isActive) url += `&is_active=${isActive}`;
+    if (isAdmin) url += `&is_admin=${isAdmin}`;
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (response.ok) {
+            renderUsers(data.users || []);
+            renderPagination(data.total || 0, data.page || 1, data.per_page || perPage);
+        } else {
+            showToast(data.error || 'Failed to load users', 'error');
+        }
+    } catch (error) {
+        showToast('Error loading users', 'error');
+    }
+}
+
+async function loadStats() {
+    try {
+        const response = await fetch('/admin/statistics');
+        const data = await response.json();
+        
+        if (response.ok) {
+            document.getElementById('total-users').textContent = data.total_users || 0;
+            document.getElementById('active-users').textContent = data.active_users || 0;
+            document.getElementById('admin-users').textContent = data.admin_users || 0;
+            document.getElementById('recent-logins').textContent = data.recent_logins || 0;
+        }
+    } catch (error) {
+        console.error('Failed to load stats:', error);
+    }
+}
+
+function renderUsers(users) {
+    const tbody = document.getElementById('users-table-body');
+    
+    if (users.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-5 text-muted">
+                    <i class="bi bi-people d-block" style="font-size: 3rem; opacity: 0.3;"></i>
+                    No users found
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = users.map(user => `
+        <tr>
+            <td>${user.id}</td>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                         style="width: 32px; height: 32px; background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary)); color: white; font-weight: 600; font-size: 0.875rem;">
+                        ${user.username[0].toUpperCase()}
+                    </div>
+                    <span>${user.username}</span>
+                </div>
+            </td>
+            <td>${user.email}</td>
+            <td>
+                ${user.is_admin 
+                    ? '<span class="badge bg-danger"><i class="bi bi-shield-check me-1"></i>Admin</span>' 
+                    : '<span class="badge bg-secondary"><i class="bi bi-person me-1"></i>User</span>'}
+            </td>
+            <td>
+                ${user.is_active 
+                    ? '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Active</span>' 
+                    : '<span class="badge bg-warning"><i class="bi bi-pause-circle me-1"></i>Inactive</span>'}
+            </td>
+            <td>${user.last_login_at ? formatDate(user.last_login_at) : 'Never'}</td>
+            <td>${formatDate(user.created_at)}</td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="editUser(${user.id})" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-${user.is_active ? 'warning' : 'success'}" 
+                            onclick="toggleActive(${user.id})" 
+                            title="${user.is_active ? 'Deactivate' : 'Activate'}">
+                        <i class="bi bi-${user.is_active ? 'pause' : 'play'}"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="deleteUser(${user.id}, '${user.username}')" title="Delete">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderPagination(total, page, perPage) {
+    const totalPages = Math.ceil(total / perPage);
+    const nav = document.getElementById('pagination-nav').querySelector('ul');
+    
+    if (totalPages <= 1) {
+        nav.innerHTML = '';
+        return;
+    }
+    
+    let html = `
+        <li class="page-item ${page === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="goToPage(${page - 1}); return false;">&laquo;</a>
+        </li>
+    `;
+    
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
+            html += `
+                <li class="page-item ${i === page ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="goToPage(${i}); return false;">${i}</a>
+                </li>
+            `;
+        } else if (i === page - 3 || i === page + 3) {
+            html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+        }
+    }
+    
+    html += `
+        <li class="page-item ${page === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="goToPage(${page + 1}); return false;">&raquo;</a>
+        </li>
+    `;
+    
+    nav.innerHTML = html;
+}
+
+function goToPage(page) {
+    currentPage = page;
+    loadUsers();
+}
+
+function resetFilters() {
+    document.getElementById('search').value = '';
+    document.getElementById('filter-active').value = '';
+    document.getElementById('filter-admin').value = '';
+    currentPage = 1;
+    loadUsers();
+}
+
+async function editUser(userId) {
+    try {
+        const response = await fetch(`/admin/users/${userId}`);
+        const user = await response.json();
+        
+        if (response.ok) {
+            document.getElementById('edit-user-id').value = user.id;
+            document.getElementById('edit-username').value = user.username;
+            document.getElementById('edit-email').value = user.email;
+            document.getElementById('edit-display-name').value = user.profile?.display_name || '';
+            document.getElementById('edit-password').value = '';
+            document.getElementById('edit-is-admin').checked = user.is_admin;
+            document.getElementById('edit-is-active').checked = user.is_active;
+            
+            new bootstrap.Modal(document.getElementById('editUserModal')).show();
+        } else {
+            showToast(user.error || 'Failed to load user', 'error');
+        }
+    } catch (error) {
+        showToast('Error loading user', 'error');
+    }
+}
+
+async function toggleActive(userId) {
+    try {
+        const response = await fetch(`/admin/users/${userId}/toggle-active`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            showToast('User status updated', 'success');
+            loadUsers();
+            loadStats();
+        } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to update status', 'error');
+        }
+    } catch (error) {
+        showToast('Error updating status', 'error');
+    }
+}
+
+function deleteUser(userId, username) {
+    document.getElementById('delete-user-id').value = userId;
+    document.getElementById('delete-username').textContent = username;
+    new bootstrap.Modal(document.getElementById('deleteUserModal')).show();
+}
+
+async function confirmDeleteUser() {
+    const userId = document.getElementById('delete-user-id').value;
+    
+    try {
+        const response = await fetch(`/admin/users/${userId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            showToast('User deleted successfully', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('deleteUserModal')).hide();
+            loadUsers();
+            loadStats();
+        } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to delete user', 'error');
+        }
+    } catch (error) {
+        showToast('Error deleting user', 'error');
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+}
+
+function showToast(message, type = 'info') {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        document.body.appendChild(container);
+    }
+    
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'primary'}" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', toastHtml);
+    const toastEl = container.lastElementChild;
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+    
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+}
+</script>
+{% endblock %}

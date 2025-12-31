@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Beep ML Studio{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="card-title mb-2">Welcome Back</h2>
+                        <p class="text-muted">Sign in to your ML Studio account</p>
+                    </div>
+
+                    {% if error or request.args.get('error') %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        {{ error or request.args.get('error', 'An error occurred') }}
+                        {% if error_description or request.args.get('error_description') %}
+                        <br><small>{{ error_description or request.args.get('error_description', '') }}</small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% set auth_mode = auth_mode|default('local') %}
+
+                    {% if auth_mode == 'local' %}
+                    <!-- Local Authentication Mode: Show Login/Register Forms -->
+                    <ul class="nav nav-tabs mb-4" id="authTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab">
+                                <i class="bi bi-person-plus me-2"></i>Register
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="authTabContent">
+                        <!-- Login Tab -->
+                        <div class="tab-pane fade show active" id="login" role="tabpanel">
+                            <form id="loginForm">
+                                <div class="mb-3">
+                                    <label for="loginUsername" class="form-label">Username or Email</label>
+                                    <input type="text" class="form-control" id="loginUsername" name="username_or_email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="loginPassword" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="loginPassword" name="password" required>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="rememberMe">
+                                    <label class="form-check-label" for="rememberMe">Remember me</label>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary" id="loginBtn">
+                                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                                    </button>
+                                </div>
+                                <div id="loginError" class="alert alert-danger mt-3" style="display: none;"></div>
+                            </form>
+                        </div>
+
+                        <!-- Register Tab -->
+                        <div class="tab-pane fade" id="register" role="tabpanel">
+                            <form id="registerForm">
+                                <div class="mb-3">
+                                    <label for="registerUsername" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="registerUsername" name="username" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]+">
+                                    <small class="form-text text-muted">3-20 characters, alphanumeric and underscores only</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="registerEmail" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="registerEmail" name="email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="registerPassword" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="registerPassword" name="password" required minlength="8">
+                                    <small class="form-text text-muted">Minimum 8 characters</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                    <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary" id="registerBtn">
+                                        <i class="bi bi-person-plus me-2"></i>Create Account
+                                    </button>
+                                </div>
+                                <div id="registerError" class="alert alert-danger mt-3" style="display: none;"></div>
+                            </form>
+                        </div>
+                    </div>
+                    {% elif auth_mode == 'identity_server' %}
+                    <!-- Identity Server Mode -->
+                    <div class="text-center">
+                        <a href="{{ url_for('auth.identity_server_login') }}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-shield-lock me-2"></i>Login with Identity Server
+                        </a>
+                    </div>
+                    {% elif auth_mode == 'microsoft_sso' %}
+                    <!-- Microsoft SSO Mode -->
+                    <div class="text-center">
+                        <a href="{{ url_for('auth.microsoft_login') }}" class="btn btn-primary btn-lg" style="background: #0078d4; border-color: #0078d4;">
+                            <i class="bi bi-microsoft me-2"></i>Sign in with Microsoft
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+{% if auth_mode == 'local' %}
+// Login form handling
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const errorDiv = document.getElementById('loginError');
+    errorDiv.style.display = 'none';
+    
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Logging in...';
+    
+    try {
+        const response = await fetch('/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username_or_email: username,
+                password: password
+            }),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.access_token) {
+            localStorage.setItem('access_token', data.access_token);
+            if (data.user) {
+                localStorage.setItem('user', JSON.stringify(data.user));
+            }
+            window.location.href = '/';
+        } else {
+            errorDiv.textContent = data.message || data.error || 'Login failed. Please check your credentials.';
+            errorDiv.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Login';
+        }
+    } catch (error) {
+        errorDiv.textContent = 'Network error. Please try again.';
+        errorDiv.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Login';
+    }
+});
+
+// Register form handling
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('registerBtn');
+    const errorDiv = document.getElementById('registerError');
+    errorDiv.style.display = 'none';
+    
+    const username = document.getElementById('registerUsername').value.trim();
+    const email = document.getElementById('registerEmail').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if (password !== confirmPassword) {
+        errorDiv.textContent = 'Passwords do not match';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating account...';
+    
+    try {
+        const response = await fetch('/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                email: email,
+                password: password
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // After registration, automatically log in
+            const loginResponse = await fetch('/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username_or_email: username,
+                    password: password
+                }),
+                credentials: 'include'
+            });
+            
+            const loginData = await loginResponse.json();
+            if (loginResponse.ok && loginData.access_token) {
+                localStorage.setItem('access_token', loginData.access_token);
+                if (loginData.user) {
+                    localStorage.setItem('user', JSON.stringify(loginData.user));
+                }
+                window.location.href = '/';
+            } else {
+                errorDiv.innerHTML = 'Account created successfully! Please <a href="#login" onclick="document.getElementById(\'login-tab\').click(); return false;">login</a> to continue.';
+                errorDiv.className = 'alert alert-success mt-3';
+                errorDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Create Account';
+            }
+        } else {
+            errorDiv.textContent = data.message || data.error || 'Registration failed. Please try again.';
+            errorDiv.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Create Account';
+        }
+    } catch (error) {
+        errorDiv.textContent = 'Network error. Please try again.';
+        errorDiv.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Create Account';
+    }
+});
+{% endif %}
+</script>
+{% endblock %}

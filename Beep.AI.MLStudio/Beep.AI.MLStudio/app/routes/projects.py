@@ -7,6 +7,7 @@ from app import db, socketio
 from app.models.project import MLProject
 from app.models.experiment import Experiment
 from app.services.environment_manager import EnvironmentManager
+from app.services.auth_service import AuthService
 from app.services.ml_service import MLService
 from app.services.data_service import DataService
 from flask import current_app
@@ -42,9 +43,27 @@ def get_data_service():
 
 
 @projects_bp.route('/')
+@AuthService.require_auth
 def index():
-    """List all projects"""
-    projects = MLProject.query.filter_by(status='active').order_by(MLProject.created_at.desc()).all()
+    """List all projects (filtered by user unless admin)"""
+    user = AuthService.get_current_user()
+    
+    # Admin can see all projects, regular users see only their own and shared projects
+    if user and user.is_admin:
+        projects = MLProject.query.filter_by(status='active').order_by(MLProject.created_at.desc()).all()
+    elif user:
+        from sqlalchemy import or_
+        # Get user's projects and shared projects
+        projects = MLProject.query.filter(
+            MLProject.status == 'active',
+            or_(
+                MLProject.user_id == user.id,
+                MLProject.is_shared == True
+            )
+        ).order_by(MLProject.created_at.desc()).all()
+    else:
+        # Not authenticated - show only shared projects
+        projects = MLProject.query.filter_by(status='active', is_shared=True).order_by(MLProject.created_at.desc()).all()
     
     # Get Community connection status
     community_config = None
@@ -62,6 +81,7 @@ def index():
 
 
 @projects_bp.route('/<int:project_id>')
+@AuthService.require_auth
 def detail(project_id):
     """Project detail view"""
     project = MLProject.query.get_or_404(project_id)
@@ -77,6 +97,7 @@ def detail(project_id):
 
 
 @projects_bp.route('/create', methods=['GET', 'POST'])
+@AuthService.require_auth
 @error_handler
 def create():
     """Create new project"""
@@ -302,6 +323,7 @@ def _get_framework_packages(framework: str) -> list:
 
 
 @projects_bp.route('/<int:project_id>/delete', methods=['POST'])
+@AuthService.require_auth
 def delete(project_id):
     """Delete project (keeps virtual environment for reuse)"""
     project = MLProject.query.get_or_404(project_id)
@@ -331,6 +353,7 @@ def delete(project_id):
 
 
 @projects_bp.route('/<int:project_id>/upload', methods=['POST'])
+@AuthService.require_auth
 def upload_dataset(project_id):
     """Upload dataset to project"""
     project = MLProject.query.get_or_404(project_id)
@@ -357,4 +380,72 @@ def upload_dataset(project_id):
         flash(f'Upload failed: {str(e)}', 'error')
     
     return redirect(url_for('projects.detail', project_id=project_id))
+
+
+@projects_bp.route('/<int:project_id>/share', methods=['POST'])
+@AuthService.require_auth
+def share_project(project_id):
+    """Share project with users"""
+    user = AuthService.get_current_user()
+    if not user:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    project = MLProject.query.get_or_404(project_id)
+    
+    # Check ownership (user must own the project or be admin)
+    if project.user_id != user.id and not user.is_admin:
+        return jsonify({'error': 'Access denied'}), 403
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Invalid request'}), 400
+    
+    user_ids = data.get('user_ids', [])
+    if not isinstance(user_ids, list):
+        return jsonify({'error': 'user_ids must be a list'}), 400
+    
+    # Add users to shared list
+    for user_id in user_ids:
+        project.add_shared_user(user_id)
+    
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Project shared successfully',
+        'shared_with_users': project.get_shared_with_users()
+    }), 200
+
+
+@projects_bp.route('/<int:project_id>/unshare', methods=['POST'])
+@AuthService.require_auth
+def unshare_project(project_id):
+    """Unshare project with users"""
+    user = AuthService.get_current_user()
+    if not user:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    project = MLProject.query.get_or_404(project_id)
+    
+    # Check ownership (user must own the project or be admin)
+    if project.user_id != user.id and not user.is_admin:
+        return jsonify({'error': 'Access denied'}), 403
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Invalid request'}), 400
+    
+    user_ids = data.get('user_ids', [])
+    if not isinstance(user_ids, list):
+        return jsonify({'error': 'user_ids must be a list'}), 400
+    
+    # Remove users from shared list
+    for user_id in user_ids:
+        project.remove_shared_user(user_id)
+    
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Project unshared successfully',
+        'shared_with_users': project.get_shared_with_users()
+    }), 200
 

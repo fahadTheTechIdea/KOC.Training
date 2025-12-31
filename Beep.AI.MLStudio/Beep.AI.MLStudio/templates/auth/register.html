@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}{{ theme.AppName if theme else 'ML Studio' }} - Create Account{% endblock %}
+
+{% block extra_css %}
+<style>
+    .register-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+        padding: 2rem;
+    }
+    
+    .register-card {
+        width: 100%;
+        max-width: 450px;
+        background: var(--bg-surface);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-xl);
+        padding: 2.5rem;
+    }
+    
+    .register-logo {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .register-logo img {
+        height: 60px;
+        margin-bottom: 1rem;
+    }
+    
+    .register-logo h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+    
+    .register-logo p {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+    
+    .form-floating {
+        margin-bottom: 1rem;
+    }
+    
+    .form-floating input {
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 1rem 0.75rem;
+    }
+    
+    .form-floating input:focus {
+        border-color: var(--theme-primary);
+        box-shadow: 0 0 0 3px var(--theme-primary-transparent);
+    }
+    
+    .btn-register {
+        width: 100%;
+        padding: 0.875rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: var(--radius-md);
+        background: var(--theme-primary);
+        border: none;
+        color: var(--text-on-primary);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-register:hover {
+        background: var(--theme-primary-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .register-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .register-footer a {
+        color: var(--theme-primary);
+        text-decoration: none;
+        font-weight: 600;
+    }
+    
+    .register-footer a:hover {
+        text-decoration: underline;
+    }
+    
+    .password-requirements {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 0.5rem;
+    }
+    
+    .password-requirements li {
+        margin-bottom: 0.25rem;
+    }
+    
+    .password-requirements li.valid {
+        color: var(--theme-success);
+    }
+    
+    .password-requirements li.invalid {
+        color: var(--theme-error);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <div class="register-card">
+        <div class="register-logo">
+            {% if theme and theme.LogoUrl %}
+            <img src="{{ theme.LogoUrl }}" alt="{{ theme.AppName }}">
+            {% endif %}
+            <h1>{{ theme.AppName if theme else 'ML Studio' }}</h1>
+            <p>Create your account</p>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="{{ url_for('auth.register') }}" id="register-form">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="username" name="username" placeholder="Username" required minlength="3" maxlength="50">
+                <label for="username"><i class="bi bi-person me-2"></i>Username</label>
+            </div>
+            
+            <div class="form-floating">
+                <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                <label for="email"><i class="bi bi-envelope me-2"></i>Email</label>
+            </div>
+            
+            <div class="form-floating">
+                <input type="text" class="form-control" id="display_name" name="display_name" placeholder="Display Name">
+                <label for="display_name"><i class="bi bi-person-badge me-2"></i>Display Name (Optional)</label>
+            </div>
+            
+            <div class="form-floating">
+                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required minlength="8">
+                <label for="password"><i class="bi bi-lock me-2"></i>Password</label>
+            </div>
+            
+            <ul class="password-requirements list-unstyled">
+                <li id="req-length"><i class="bi bi-circle me-1"></i>At least 8 characters</li>
+                <li id="req-upper"><i class="bi bi-circle me-1"></i>At least one uppercase letter</li>
+                <li id="req-lower"><i class="bi bi-circle me-1"></i>At least one lowercase letter</li>
+                <li id="req-number"><i class="bi bi-circle me-1"></i>At least one number</li>
+            </ul>
+            
+            <div class="form-floating">
+                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required>
+                <label for="confirm_password"><i class="bi bi-lock-fill me-2"></i>Confirm Password</label>
+            </div>
+            
+            <button type="submit" class="btn btn-register mt-3">
+                <i class="bi bi-person-plus me-2"></i>Create Account
+            </button>
+        </form>
+        
+        <div class="register-footer">
+            <p class="mb-0">Already have an account? <a href="{{ url_for('auth.login_page') }}">Sign in</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Password validation
+const password = document.getElementById('password');
+const confirmPassword = document.getElementById('confirm_password');
+
+password.addEventListener('input', function() {
+    const value = this.value;
+    
+    // Length check
+    updateRequirement('req-length', value.length >= 8);
+    
+    // Uppercase check
+    updateRequirement('req-upper', /[A-Z]/.test(value));
+    
+    // Lowercase check
+    updateRequirement('req-lower', /[a-z]/.test(value));
+    
+    // Number check
+    updateRequirement('req-number', /[0-9]/.test(value));
+});
+
+function updateRequirement(id, valid) {
+    const el = document.getElementById(id);
+    const icon = el.querySelector('i');
+    
+    if (valid) {
+        el.classList.add('valid');
+        el.classList.remove('invalid');
+        icon.classList.remove('bi-circle');
+        icon.classList.add('bi-check-circle-fill');
+    } else {
+        el.classList.remove('valid');
+        el.classList.add('invalid');
+        icon.classList.add('bi-circle');
+        icon.classList.remove('bi-check-circle-fill');
+    }
+}
+
+// Confirm password validation
+document.getElementById('register-form').addEventListener('submit', function(e) {
+    if (password.value !== confirmPassword.value) {
+        e.preventDefault();
+        alert('Passwords do not match');
+        confirmPassword.focus();
+    }
+});
+</script>
+{% endblock %}

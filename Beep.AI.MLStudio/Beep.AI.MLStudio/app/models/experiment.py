@@ -12,6 +12,7 @@ class Experiment(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('ml_projects.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     
@@ -38,6 +39,9 @@ class Experiment(db.Model):
     started_at = db.Column(db.DateTime)
     completed_at = db.Column(db.DateTime)
     
+    # Relationships
+    user = db.relationship('User', backref='experiments')
+    
     def set_model_config(self, config_dict):
         """Set model configuration as JSON"""
         self.model_config = json.dumps(config_dict)
@@ -63,6 +67,7 @@ class Experiment(db.Model):
         return {
             'id': self.id,
             'project_id': self.project_id,
+            'user_id': self.user_id,
             'name': self.name,
             'description': self.description,
             'model_type': self.model_type,

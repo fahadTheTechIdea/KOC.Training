@@ -204,6 +204,17 @@ def create_app(config_name=None):
     app.register_blueprint(settings_bp)
     app.register_blueprint(industry_bp, url_prefix='/industry')
     
+    # Register new blueprints for user management and authentication
+    from app.routes.auth import auth_bp
+    from app.routes.users import users_bp
+    from app.routes.admin import admin_bp
+    from app.routes.setup import setup_bp
+    
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(users_bp, url_prefix='/users')
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(setup_bp, url_prefix='/setup')
+    
     # Initialize theme provider
     from app.services.theme_provider import init_theme_provider
     init_theme_provider(app)

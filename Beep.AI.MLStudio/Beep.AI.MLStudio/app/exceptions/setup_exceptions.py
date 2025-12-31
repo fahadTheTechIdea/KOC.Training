@@ -1,7 +1,6 @@
 """
-Setup wizard-related exceptions
+Setup Exceptions
 """
-
 
 class SetupError(Exception):
     """Base exception for setup errors"""
@@ -9,24 +8,15 @@ class SetupError(Exception):
 
 
 class SetupValidationError(SetupError):
-    """Exception raised when setup validation fails"""
-    
-    def __init__(self, message: str, field: str = None):
-        super().__init__(message)
-        self.field = field
+    """Raised when setup validation fails"""
+    pass
 
 
 class SetupConfigurationError(SetupError):
-    """Exception raised when setup configuration is invalid"""
-    
-    def __init__(self, message: str, step: str = None):
-        super().__init__(message)
-        self.step = step
+    """Raised when setup configuration fails"""
+    pass
 
 
 class SetupCompleteError(SetupError):
-    """Exception raised when setup completion fails"""
-    
-    def __init__(self, message: str, original_error: Exception = None):
-        super().__init__(message)
-        self.original_error = original_error
+    """Raised when setup completion fails"""
+    pass

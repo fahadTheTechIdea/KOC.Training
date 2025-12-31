@@ -27,27 +27,47 @@ class Colors:
     RESET = '\033[0m'
     BOLD = '\033[1m'
 
+def strip_emojis(message):
+    """Replace emoji characters with ASCII equivalents"""
+    replacements = {
+        '✅': '[OK]',
+        '❌': '[ERROR]',
+        '⚠️': '[WARN]',
+        '📦': '[INFO]',
+        '📥': '[INFO]',
+        '⚙️': '[INFO]',
+        '🗄️': '[INFO]',
+        '🔍': '[INFO]',
+        '📁': '[INFO]',
+        '🚀': '[INFO]',
+        '👋': '[INFO]',
+        '📋': '[INFO]',
+        '🐍': '[PYTHON]',
+        '🔧': '[CONFIG]',
+        '🌐': '[NET]',
+        '💾': '[SAVE]',
+        '🔒': '[LOCK]',
+        '🔑': '[KEY]',
+    }
+    for emoji, replacement in replacements.items():
+        message = message.replace(emoji, replacement)
+    return message
+
 def print_colored(message, color=Colors.RESET, end='\n'):
     """Print colored message (works on Unix, plain text on Windows)"""
     try:
         if platform.system() == 'Windows':
+            # On Windows, try to encode the message first to catch errors early
+            try:
+                message.encode('cp1252')
+            except UnicodeEncodeError:
+                message = strip_emojis(message)
             print(message, end=end)
         else:
             print(f"{color}{message}{Colors.RESET}", end=end)
     except UnicodeEncodeError:
         # Fallback: replace emoji with ASCII equivalents
-        message = message.replace('✅', '[OK]')
-        message = message.replace('❌', '[ERROR]')
-        message = message.replace('⚠️', '[WARN]')
-        message = message.replace('📦', '[INFO]')
-        message = message.replace('📥', '[INFO]')
-        message = message.replace('⚙️', '[INFO]')
-        message = message.replace('🗄️', '[INFO]')
-        message = message.replace('🔍', '[INFO]')
-        message = message.replace('📁', '[INFO]')
-        message = message.replace('🚀', '[INFO]')
-        message = message.replace('👋', '[INFO]')
-        message = message.replace('📋', '[INFO]')
+        message = strip_emojis(message)
         print(message, end=end)
 
 def check_python_version():

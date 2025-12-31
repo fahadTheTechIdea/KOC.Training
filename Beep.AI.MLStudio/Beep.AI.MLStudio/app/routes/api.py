@@ -13,6 +13,7 @@ from app.models.settings import Settings
 from app.services.environment_manager import EnvironmentManager
 from app.services.ml_service import MLService
 from app.services.data_service import DataService
+from app.services.auth_service import AuthService
 from flask import current_app
 from datetime import datetime
 
@@ -171,6 +172,7 @@ def get_industry_module(module_id):
 
 # Projects API
 @api_bp.route('/projects', methods=['GET'])
+@AuthService.require_auth
 def list_projects():
     """List all projects"""
     projects = MLProject.query.filter_by(status='active').all()
@@ -181,6 +183,7 @@ def list_projects():
 
 
 @api_bp.route('/projects/create-from-competition', methods=['POST'])
+@AuthService.require_auth
 @error_handler
 @validate_json_request(required_fields=['competition_id'])
 def create_project_from_competition():
@@ -325,6 +328,7 @@ def create_project_from_competition():
 
 
 @api_bp.route('/projects', methods=['POST'])
+@AuthService.require_auth
 @error_handler
 @validate_json_request(required_fields=['name'])
 @sanitize_string_input(['name', 'description'])
@@ -448,6 +452,7 @@ def get_project(project_id):
 
 
 @api_bp.route('/projects/<int:project_id>', methods=['DELETE'])
+@AuthService.require_auth
 def delete_project(project_id):
     """Delete project (keeps virtual environment for reuse)"""
     project = MLProject.query.get_or_404(project_id)
@@ -587,6 +592,7 @@ def list_files(project_id):
 
 
 @api_bp.route('/projects/<int:project_id>/files', methods=['POST'])
+@AuthService.require_auth
 @error_handler
 @validate_json_request(required_fields=['path'])
 def create_file(project_id):
@@ -627,6 +633,7 @@ def create_file(project_id):
 
 
 @api_bp.route('/projects/<int:project_id>/upload', methods=['POST'])
+@AuthService.require_auth
 def upload_file(project_id):
     """Upload a file to the project"""
     project = MLProject.query.get_or_404(project_id)
@@ -875,6 +882,7 @@ def get_file(project_id, file_path):
 
 
 @api_bp.route('/projects/<int:project_id>/files/<path:file_path>', methods=['PUT'])
+@AuthService.require_auth
 @error_handler
 @validate_json_request()
 def update_file(project_id, file_path):
@@ -912,6 +920,7 @@ def update_file(project_id, file_path):
 
 
 @api_bp.route('/projects/<int:project_id>/files/<path:file_path>', methods=['DELETE'])
+@AuthService.require_auth
 def delete_file(project_id, file_path):
     """Delete a file"""
     project = MLProject.query.get_or_404(project_id)
@@ -1134,6 +1143,7 @@ def list_workflows(project_id):
 
 
 @api_bp.route('/projects/<int:project_id>/workflows', methods=['POST'])
+@AuthService.require_auth
 @error_handler
 @validate_json_request()
 def create_workflow(project_id):
@@ -1180,6 +1190,7 @@ def get_workflow(workflow_id):
 
 
 @api_bp.route('/workflows/<int:workflow_id>', methods=['PUT'])
+@AuthService.require_auth
 @error_handler
 @validate_json_request()
 def update_workflow(workflow_id):
@@ -1296,6 +1307,7 @@ def _update_context_from_workflow(context, workflow_data):
 
 
 @api_bp.route('/workflows/<int:workflow_id>', methods=['DELETE'])
+@AuthService.require_auth
 def delete_workflow(workflow_id):
     """Delete workflow"""
     workflow = Workflow.query.get_or_404(workflow_id)
@@ -1309,6 +1321,7 @@ def delete_workflow(workflow_id):
 
 
 @api_bp.route('/workflows/<int:workflow_id>/generate-code', methods=['POST'])
+@AuthService.require_auth
 def generate_workflow_code(workflow_id):
     """Generate Python code from workflow (uses frontend-generated code if provided)"""
     workflow = Workflow.query.get_or_404(workflow_id)
@@ -1380,6 +1393,7 @@ def list_environments():
 
 
 @api_bp.route('/workflows/<int:workflow_id>/execute', methods=['POST'])
+@AuthService.require_auth
 def execute_workflow(workflow_id):
     """Execute workflow by running generated code"""
     from flask import current_app
@@ -1748,6 +1762,7 @@ def get_setting(key):
 
 
 @api_bp.route('/settings/<key>', methods=['PUT'])
+@AuthService.require_auth
 @error_handler
 @validate_json_request()
 def update_setting(key):
@@ -1777,6 +1792,7 @@ def update_setting(key):
 
 
 @api_bp.route('/settings', methods=['POST'])
+@AuthService.require_auth
 @error_handler
 @validate_json_request(required_fields=['key'])
 @sanitize_string_input(['key', 'description', 'category'])
@@ -1810,6 +1826,7 @@ def create_setting():
 
 
 @api_bp.route('/settings/<key>', methods=['DELETE'])
+@AuthService.require_auth
 def delete_setting(key):
     """Delete a setting"""
     setting = Settings.query.filter_by(key=key).first_or_404()
@@ -1898,6 +1915,7 @@ def ml_server_list_models():
 
 
 @api_bp.route('/projects/<int:project_id>/publish', methods=['POST'])
+@AuthService.require_auth
 def publish_project_model(project_id):
     """
     Publish a trained model from a project to the ML Server
@@ -2030,6 +2048,7 @@ def community_competitions():
 
 
 @api_bp.route('/community/competitions/<int:competition_id>/join', methods=['POST'])
+@AuthService.require_auth
 def join_competition(competition_id):
     """Join a competition in Community platform"""
     try:

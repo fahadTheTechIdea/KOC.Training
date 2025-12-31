@@ -29,16 +29,31 @@ class AuthService:
     def get_auth_mode() -> str:
         """
         Get current authentication mode
+        Priority: database (AuthConfig) > environment variable > default
         
         Returns:
-            'local' for local JWT or 'identity_server' for OAuth2/OIDC
+            'local', 'identity_server', or 'microsoft_sso'
         """
+        try:
+            from app.models.auth_config import AuthConfig
+            auth_config = AuthConfig.get_config()
+            if auth_config and auth_config.auth_mode:
+                return auth_config.auth_mode.lower()
+        except Exception as e:
+            logger.debug(f"Could not get auth mode from database: {e}")
+        
+        # Fallback to environment variable
         return os.getenv(ENV_AUTH_MODE, AUTH_MODE_LOCAL).lower()
     
     @staticmethod
     def is_identity_server_mode() -> bool:
         """Check if Identity Server mode is enabled"""
         return AuthService.get_auth_mode() == AUTH_MODE_IDENTITY_SERVER
+    
+    @staticmethod
+    def is_microsoft_sso_mode() -> bool:
+        """Check if Microsoft SSO mode is enabled"""
+        return AuthService.get_auth_mode() == 'microsoft_sso'
     
     @staticmethod
     def _get_identity_server_service():
@@ -110,7 +125,21 @@ class AuthService:
         if not user:
             return None, "Invalid username/email or password"
         
-        access_token = create_access_token(identity=user.id)
+        # Update login tracking
+        from datetime import datetime
+        user.last_login_at = datetime.utcnow()
+        user.login_count = (user.login_count or 0) + 1
+        db.session.commit()
+        
+        # Get JWT expiration from AuthConfig
+        from app.models.auth_config import AuthConfig
+        auth_config = AuthConfig.get_config()
+        expires_delta = None
+        if auth_config.jwt_token_expires:
+            from datetime import timedelta
+            expires_delta = timedelta(seconds=auth_config.jwt_token_expires)
+        
+        access_token = create_access_token(identity=user.id, expires_delta=expires_delta)
         return {'access_token': access_token, 'user': user.to_dict()}, None
     
     @staticmethod
@@ -138,21 +167,57 @@ class AuthService:
         return service.login(access_token, client_id)
     
     @staticmethod
+    def login_with_microsoft(code: str, state: Optional[str] = None) -> Tuple[Optional[Dict], Optional[str]]:
+        """
+        Login using Microsoft SSO OAuth code
+        
+        Args:
+            code: OAuth authorization code
+            state: OAuth state parameter (optional)
+            
+        Returns:
+            Tuple of (login_result_dict, error_message)
+        """
+        if not AuthService.is_microsoft_sso_mode():
+            return None, "Microsoft SSO mode not enabled"
+        
+        try:
+            from app.services.microsoft_sso_service import MicrosoftSSOService
+            service = MicrosoftSSOService()
+            return service.handle_callback(code, state)
+        except Exception as e:
+            logger.error(f"Error in Microsoft SSO login: {e}")
+            return None, str(e)
+    
+    @staticmethod
     def get_current_user() -> Optional[User]:
         """
         Get current authenticated user
-        Works with both local JWT and Identity Server OAuth tokens
+        Works with local JWT, Identity Server OAuth tokens, Microsoft SSO, and API keys
         
         Returns:
             User object if authenticated, None otherwise
         """
         try:
-            if AuthService.is_identity_server_mode():
+            # Check for API key first (works in all modes)
+            api_key = request.headers.get('X-API-Key') or request.args.get('api_key')
+            if api_key:
+                user = AuthService.validate_api_key(api_key)
+                if user:
+                    return user
+            
+            auth_mode = AuthService.get_auth_mode()
+            
+            if auth_mode == 'identity_server':
                 # Check for OAuth token in Authorization header
                 auth_header = request.headers.get('Authorization', '')
                 if auth_header.startswith('Bearer '):
                     oauth_token = auth_header[7:]
-                    client_id = os.getenv(ENV_IDENTITY_SERVER_CLIENT_ID)
+                    
+                    # Get client_id from AuthConfig
+                    from app.models.auth_config import AuthConfig
+                    auth_config = AuthConfig.get_config()
+                    client_id = auth_config.identity_server_client_id if auth_config else os.getenv(ENV_IDENTITY_SERVER_CLIENT_ID)
                     
                     # Use Identity Server auth service
                     service = AuthService._get_identity_server_service()
@@ -162,15 +227,96 @@ class AuthService:
                             user, _ = service.get_or_create_user(user_info)
                             return user
             
-            # Fall back to local JWT
+            elif auth_mode == 'microsoft_sso':
+                # Check for OAuth token in Authorization header
+                auth_header = request.headers.get('Authorization', '')
+                if auth_header.startswith('Bearer '):
+                    oauth_token = auth_header[7:]
+                    try:
+                        from app.services.microsoft_sso_service import MicrosoftSSOService
+                        service = MicrosoftSSOService()
+                        user_info = service.get_user_info(oauth_token)
+                        if user_info:
+                            user, _ = service.get_or_create_user(user_info)
+                            return user
+                    except Exception as e:
+                        logger.debug(f"Error validating Microsoft token: {e}")
+            
+            # Fall back to local JWT (works in local mode and as fallback)
             user_id = get_jwt_identity()
             if user_id:
                 user = User.query.get(user_id)
-                return user
+                if user and user.is_active:
+                    return user
+                    
         except Exception as e:
             logger.debug(f"Error getting current user: {e}")
         
         return None
+    
+    @staticmethod
+    def is_admin(user: Optional[User] = None) -> bool:
+        """
+        Check if user is admin
+        
+        Args:
+            user: User object (if None, gets current user)
+            
+        Returns:
+            True if user is admin
+        """
+        if user is None:
+            user = AuthService.get_current_user()
+        return user is not None and user.is_admin
+    
+    @staticmethod
+    def require_auth(func):
+        """
+        Decorator to require authentication
+        Usage: @AuthService.require_auth
+        Redirects to login page if not authenticated
+        """
+        from functools import wraps
+        from flask import jsonify, redirect, url_for, request
+        
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            user = AuthService.get_current_user()
+            if not user:
+                # For API requests, return JSON error
+                if request.path.startswith('/api/') or request.is_json:
+                    return jsonify({'error': 'Authentication required'}), 401
+                # For web requests, redirect to login
+                return redirect(url_for('auth.login_page', next=request.url))
+            return func(*args, **kwargs)
+        return wrapper
+    
+    @staticmethod
+    def require_admin(func):
+        """
+        Decorator to require admin role
+        Usage: @AuthService.require_admin
+        """
+        from functools import wraps
+        from flask import jsonify, redirect, url_for, request
+        
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            user = AuthService.get_current_user()
+            if not user:
+                # For API requests, return JSON error
+                if request.path.startswith('/api/') or request.is_json:
+                    return jsonify({'error': 'Authentication required'}), 401
+                # For web requests, redirect to login
+                return redirect(url_for('auth.login_page', next=request.url))
+            if not user.is_admin:
+                # For API requests, return JSON error
+                if request.path.startswith('/api/') or request.is_json:
+                    return jsonify({'error': 'Admin access required'}), 403
+                # For web requests, redirect to login
+                return redirect(url_for('auth.login_page', next=request.url))
+            return func(*args, **kwargs)
+        return wrapper
     
     @staticmethod
     def create_api_key(user_id, key_name):

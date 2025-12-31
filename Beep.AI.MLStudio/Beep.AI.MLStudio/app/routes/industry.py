@@ -10,6 +10,7 @@ from app.models.project import MLProject as Project
 from app.models.industry_scenario import IndustryScenarioProgress
 from app.services.branding_service import BrandingService
 from app.services.industry_scenarios_service import IndustryScenariosService
+from app.services.auth_service import AuthService
 from app import db
 
 logger = logging.getLogger(__name__)
@@ -18,6 +19,7 @@ industry_bp = Blueprint('industry', __name__)
 
 
 @industry_bp.route('/mode')
+@AuthService.require_auth
 def select_mode():
     """Display mode selection page"""
     from flask import current_app
@@ -39,6 +41,7 @@ def select_mode():
 
 
 @industry_bp.route('/mode/<profile_id>', methods=['POST'])
+@AuthService.require_auth
 def set_mode(profile_id):
     """Set the current industry mode"""
     from flask import current_app
@@ -65,6 +68,7 @@ def set_mode(profile_id):
 
 
 @industry_bp.route('/dashboard/<profile_id>')
+@AuthService.require_auth
 def dashboard(profile_id):
     """Display industry-specific dashboard"""
     from flask import current_app
@@ -141,6 +145,7 @@ def dashboard(profile_id):
 
 
 @industry_bp.route('/scenario/<profile_id>/<scenario_id>')
+@AuthService.require_auth
 def scenario_wizard(profile_id, scenario_id):
     """Display scenario wizard for a specific use case"""
     # Map aliases to actual profile IDs
@@ -181,6 +186,7 @@ def scenario_wizard(profile_id, scenario_id):
 
 
 @industry_bp.route('/scenario/<profile_id>/<scenario_id>/start', methods=['POST'])
+@AuthService.require_auth
 def start_scenario(profile_id, scenario_id):
     """Start a new project based on a scenario"""
     # Map aliases to actual profile IDs
@@ -292,6 +298,7 @@ def start_scenario(profile_id, scenario_id):
 
 
 @industry_bp.route('/project/<int:project_id>/step/<int:step>')
+@AuthService.require_auth
 def scenario_step(project_id, step):
     """Display a specific step in the scenario wizard"""
     project = Project.query.get_or_404(project_id)
@@ -368,6 +375,7 @@ def scenario_step(project_id, step):
 
 # API endpoints for AJAX
 @industry_bp.route('/api/profiles')
+@AuthService.require_auth
 def api_list_profiles():
     """API: List all industry profiles"""
     profiles = profile_manager.list_all()
@@ -378,6 +386,7 @@ def api_list_profiles():
 
 
 @industry_bp.route('/api/profile/<profile_id>')
+@AuthService.require_auth
 def api_get_profile(profile_id):
     """API: Get a specific profile"""
     profile = profile_manager.get(profile_id)
@@ -391,6 +400,7 @@ def api_get_profile(profile_id):
 
 
 @industry_bp.route('/api/scenarios/<profile_id>')
+@AuthService.require_auth
 def api_list_scenarios(profile_id):
     """API: List scenarios for a profile"""
     scenarios = profile_manager.get_scenarios(profile_id)

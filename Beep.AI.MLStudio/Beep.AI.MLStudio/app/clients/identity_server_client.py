@@ -1,153 +1,105 @@
 """
-Identity Server Client - Integration with Beep.Foundation.IdentityServer
+Identity Server Client
+Handles communication with Beep.Foundation.IdentityServer
 """
 import requests
 import logging
-from typing import Dict, Optional, Any, List, Tuple
-import os
-
-from app.utils.constants import (
-    ID_SERVER_ENDPOINT_HEALTH,
-    ID_SERVER_ENDPOINT_TOKEN_VALIDATE,
-    ID_SERVER_ENDPOINT_USER_ACCESS_CHECK,
-    ID_SERVER_ENDPOINT_USER_ROLE,
-    ID_SERVER_ENDPOINT_USER_APPLICATIONS,
-    ID_SERVER_ENDPOINT_TOKEN,
-    ID_SERVER_ENDPOINT_USERINFO,
-    HTTP_TIMEOUT,
-    MSG_UNAUTHORIZED,
-    MSG_FORBIDDEN,
-    MSG_CONNECTION_ERROR,
-    MSG_TIMEOUT_ERROR
-)
+from typing import Optional, Tuple, Dict
+from app.models.auth_config import AuthConfig
 
 logger = logging.getLogger(__name__)
 
 
 class IdentityServerClient:
-    """Client for Beep.Foundation.IdentityServer API"""
+    """Client for Identity Server OAuth2/OIDC operations"""
     
-    def __init__(self, base_url: str = None, client_id: str = None, client_secret: str = None):
+    def __init__(self, base_url: Optional[str] = None, client_id: Optional[str] = None, client_secret: Optional[str] = None):
         """
         Initialize Identity Server client
         
         Args:
-            base_url: Identity Server base URL (e.g., https://identityserver.com)
-            client_id: OAuth client ID
-            client_secret: OAuth client secret (for confidential clients)
+            base_url: Identity Server base URL (if None, gets from AuthConfig)
+            client_id: OAuth client ID (if None, gets from AuthConfig)
+            client_secret: OAuth client secret (if None, gets from AuthConfig)
         """
-        self.base_url = (base_url or os.getenv('IDENTITY_SERVER_URL', '')).rstrip('/')
-        self.client_id = client_id or os.getenv('IDENTITY_SERVER_CLIENT_ID', '')
-        self.client_secret = client_secret or os.getenv('IDENTITY_SERVER_CLIENT_SECRET', '')
-        self.session = requests.Session()
-    
-    def _request(self, method: str, endpoint: str, access_token: str = None, **kwargs) -> Dict[str, Any]:
-        """
-        Make HTTP request to Identity Server
-        
-        Args:
-            method: HTTP method (GET, POST, etc.)
-            endpoint: API endpoint path
-            access_token: Optional OAuth access token
-            **kwargs: Additional arguments for requests
-            
-        Returns:
-            Response data as dictionary
-        """
-        url = f"{self.base_url}{endpoint}"
-        headers = kwargs.pop('headers', {})
-        
-        if access_token:
-            headers['Authorization'] = f'Bearer {access_token}'
-        
-        timeout = kwargs.pop('timeout', HTTP_TIMEOUT)
-        
-        try:
-            response = self.session.request(
-                method, 
-                url, 
-                headers=headers, 
-                timeout=timeout, 
-                **kwargs
-            )
-            
-            # Try to parse JSON response
+        if base_url is None or client_id is None or client_secret is None:
             try:
-                result = response.json()
-            except ValueError:
-                result = {'success': False, 'error': response.text}
-            
-            # Check for errors
-            if response.status_code >= 400:
-                error_msg = result.get('error', f'HTTP {response.status_code}')
-                result['success'] = False
-                result['error'] = error_msg
-            
-            return result
-            
-        except requests.exceptions.ConnectionError:
-            logger.error(f"Connection error to Identity Server: {url}")
-            return {
-                'success': False,
-                'error': MSG_CONNECTION_ERROR
-            }
-        except requests.exceptions.Timeout:
-            logger.error(f"Timeout connecting to Identity Server: {url}")
-            return {
-                'success': False,
-                'error': MSG_TIMEOUT_ERROR
-            }
-        except Exception as e:
-            logger.error(f"Error requesting Identity Server: {e}")
-            return {
-                'success': False,
-                'error': str(e)
-            }
+                auth_config = AuthConfig.get_config()
+                self.base_url = base_url or (auth_config.identity_server_url if auth_config else None)
+                self.client_id = client_id or (auth_config.identity_server_client_id if auth_config else None)
+                self.client_secret = client_secret or (auth_config.get_identity_server_client_secret() if auth_config else None)
+            except Exception:
+                # Database might not be initialized yet, use provided values or None
+                self.base_url = base_url
+                self.client_id = client_id
+                self.client_secret = client_secret
+        else:
+            self.base_url = base_url
+            self.client_id = client_id
+            self.client_secret = client_secret
     
     def health_check(self) -> Tuple[bool, Optional[str]]:
         """
-        Check if Identity Server is accessible
+        Check Identity Server availability
         
         Returns:
-            Tuple of (is_healthy, error_message)
+            Tuple of (success, error_message)
         """
-        if not self.base_url:
-            return False, "Identity Server URL not configured"
-        
-        result = self._request('GET', ID_SERVER_ENDPOINT_HEALTH)
-        if result.get('success', False) or 'error' not in result:
-            return True, None
-        return False, result.get('error', 'Health check failed')
+        try:
+            health_url = f"{self.base_url.rstrip('/')}/.well-known/openid-configuration"
+            response = requests.get(health_url, timeout=5)
+            if response.status_code == 200:
+                return True, None
+            return False, f"Server returned status {response.status_code}"
+        except Exception as e:
+            return False, str(e)
     
-    def validate_token(self, access_token: str, client_id: str = None) -> Tuple[bool, Optional[Dict], Optional[str]]:
+    def validate_token(self, access_token: str) -> Tuple[bool, Optional[Dict], Optional[str]]:
         """
         Validate OAuth access token
         
         Args:
             access_token: OAuth access token
-            client_id: OAuth client ID (uses instance client_id if not provided)
             
         Returns:
-            Tuple of (is_valid, user_info_dict, error_message)
+            Tuple of (is_valid, user_info, error_message)
         """
-        client_id = client_id or self.client_id
-        if not client_id:
-            return False, None, "Client ID not configured"
-        
-        result = self._request(
-            'POST',
-            ID_SERVER_ENDPOINT_TOKEN_VALIDATE,
-            data={
+        try:
+            # Use introspection endpoint
+            introspect_url = f"{self.base_url.rstrip('/')}/connect/introspect"
+            data = {
                 'token': access_token,
-                'client_id': client_id
+                'client_id': self.client_id,
+                'client_secret': self.client_secret
             }
-        )
-        
-        if result.get('success') and result.get('valid'):
-            return True, result.get('user_info'), None
-        return False, None, result.get('error', 'Token validation failed')
+            response = requests.post(introspect_url, data=data, timeout=10)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('active'):
+                    # Get user info
+                    user_info_url = f"{self.base_url.rstrip('/')}/connect/userinfo"
+                    headers = {'Authorization': f'Bearer {access_token}'}
+                    user_response = requests.get(user_info_url, headers=headers, timeout=10)
+                    
+                    if user_response.status_code == 200:
+                        user_info = user_response.json()
+                        return True, user_info, None
+                    else:
+                        return True, None, f"Could not get user info: {user_response.status_code}"
+                else:
+                    return False, None, "Token is not active"
+            else:
+                return False, None, f"Token validation failed: {response.status_code}"
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error validating token: {e}")
+            return False, None, str(e)
+        except Exception as e:
+            logger.error(f"Unexpected error validating token: {e}")
+            return False, None, str(e)
     
-    def get_user_info(self, access_token: str) -> Tuple[bool, Optional[Dict], Optional[str]]:
+    def get_user_info(self, access_token: str) -> Optional[Dict]:
         """
         Get user information from Identity Server
         
@@ -155,81 +107,57 @@ class IdentityServerClient:
             access_token: OAuth access token
             
         Returns:
-            Tuple of (success, user_info_dict, error_message)
+            User info dictionary or None
         """
-        result = self._request('GET', ID_SERVER_ENDPOINT_USERINFO, access_token=access_token)
-        
-        if result.get('success') or 'error' not in result:
-            return True, result, None
-        return False, None, result.get('error', 'Failed to retrieve user info')
+        try:
+            user_info_url = f"{self.base_url.rstrip('/')}/connect/userinfo"
+            headers = {'Authorization': f'Bearer {access_token}'}
+            response = requests.get(user_info_url, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                return response.json()
+            return None
+        except Exception as e:
+            logger.error(f"Error getting user info: {e}")
+            return None
     
-    def check_user_access(self, access_token: str, application: str = None) -> Tuple[bool, Optional[str]]:
+    def check_user_access(self, user_id: str, application_id: str) -> bool:
         """
-        Check if user has access to application
+        Check if user has access to an application
         
         Args:
-            access_token: OAuth access token
-            application: Application name (optional)
+            user_id: User ID
+            application_id: Application ID
             
         Returns:
-            Tuple of (has_access, error_message)
+            True if user has access
         """
-        data = {}
-        if application:
-            data['application'] = application
-        
-        result = self._request(
-            'POST',
-            ID_SERVER_ENDPOINT_USER_ACCESS_CHECK,
-            access_token=access_token,
-            json=data
-        )
-        
-        if result.get('success') and result.get('has_access'):
-            return True, None
-        return False, result.get('error', 'Access denied')
+        # This would depend on Identity Server's API
+        # Placeholder implementation
+        try:
+            # Example: Check user permissions endpoint
+            check_url = f"{self.base_url.rstrip('/')}/api/users/{user_id}/applications/{application_id}/access"
+            response = requests.get(check_url, timeout=10)
+            return response.status_code == 200
+        except Exception:
+            return False
     
-    def get_user_role(self, access_token: str) -> Tuple[Optional[str], Optional[str]]:
+    def get_user_role(self, user_id: str) -> Optional[str]:
         """
         Get user role from Identity Server
         
         Args:
-            access_token: OAuth access token
+            user_id: User ID
             
         Returns:
-            Tuple of (role, error_message)
+            User role or None
         """
-        result = self._request('GET', ID_SERVER_ENDPOINT_USER_ROLE, access_token=access_token)
-        
-        if result.get('success') or 'error' not in result:
-            role = result.get('role') or result.get('user_role')
-            return role, None
-        return None, result.get('error', 'Failed to retrieve user role')
-
-
-# Singleton instance
-_identity_server_client: Optional[IdentityServerClient] = None
-
-
-def get_identity_server_client(
-    base_url: str = None,
-    client_id: str = None,
-    client_secret: str = None
-) -> IdentityServerClient:
-    """
-    Get or create Identity Server client singleton instance
-    
-    Args:
-        base_url: Optional base URL override
-        client_id: Optional client ID override
-        client_secret: Optional client secret override
-        
-    Returns:
-        IdentityServerClient instance
-    """
-    global _identity_server_client
-    
-    if _identity_server_client is None or base_url or client_id:
-        _identity_server_client = IdentityServerClient(base_url, client_id, client_secret)
-    
-    return _identity_server_client
+        try:
+            role_url = f"{self.base_url.rstrip('/')}/api/users/{user_id}/role"
+            response = requests.get(role_url, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                return data.get('role')
+            return None
+        except Exception:
+            return None

@@ -16,6 +16,9 @@ class MLProject(db.Model):
     template = db.Column(db.String(50), default='custom')  # classification, regression, clustering, etc.
     environment_name = db.Column(db.String(200), nullable=False)  # Virtual environment name in Host Admin
     status = db.Column(db.String(50), default='active')  # active, archived, deleted
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)  # Nullable for backward compatibility
+    is_shared = db.Column(db.Boolean, default=False)
+    shared_with_users = db.Column(db.Text)  # JSON array of user IDs
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -33,6 +36,35 @@ class MLProject(db.Model):
     
     # Relationships
     experiments = db.relationship('Experiment', backref='project', lazy=True, cascade='all, delete-orphan')
+    user = db.relationship('User', backref='projects')
+    
+    def get_shared_with_users(self):
+        """Get shared_with_users as list"""
+        if self.shared_with_users:
+            try:
+                return json.loads(self.shared_with_users)
+            except:
+                return []
+        return []
+    
+    def set_shared_with_users(self, user_ids):
+        """Set shared_with_users from list"""
+        self.shared_with_users = json.dumps(user_ids) if user_ids else None
+        self.is_shared = bool(user_ids)
+    
+    def add_shared_user(self, user_id):
+        """Add user to shared list"""
+        shared = self.get_shared_with_users()
+        if user_id not in shared:
+            shared.append(user_id)
+            self.set_shared_with_users(shared)
+    
+    def remove_shared_user(self, user_id):
+        """Remove user from shared list"""
+        shared = self.get_shared_with_users()
+        if user_id in shared:
+            shared.remove(user_id)
+            self.set_shared_with_users(shared)
     
     @property
     def experiments_count(self):
@@ -94,6 +126,9 @@ class MLProject(db.Model):
             'scenario_id': self.scenario_id,
             'industry_config': industry_config_data,
             'competition_id': self.competition_id,
+            'user_id': self.user_id,
+            'is_shared': self.is_shared,
+            'shared_with_users': self.get_shared_with_users(),
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'experiments_count': len(self.experiments)

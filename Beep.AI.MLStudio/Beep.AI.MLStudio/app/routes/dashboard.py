@@ -23,6 +23,17 @@ def landing():
 @dashboard_bp.route('/')
 def index():
     """Main dashboard with industry mode selection"""
+    # Redirect unauthenticated users to landing page
+    user = AuthService.get_current_user()
+    if not user:
+        return redirect(url_for('dashboard.landing'))
+    
+    # Check if setup is complete (like Community app does)
+    from app.services.setup_service import SetupService
+    setup_service = SetupService()
+    if not setup_service.is_setup_complete():
+        return redirect(url_for('setup.index'))
+    
     # Check if forced industry mode is set
     forced_industry = current_app.config.get('FORCED_INDUSTRY_MODE')
     

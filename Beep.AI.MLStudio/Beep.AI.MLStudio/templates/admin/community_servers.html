@@ -1,0 +1,442 @@
+{% extends "base.html" %}
+
+{% block title %}{{ theme.AppName if theme else 'ML Studio' }} - Community Servers Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-hdd-network me-2"></i>Global Community Servers</h2>
+            <p class="text-muted mb-0">Manage community server connections available to all users</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.users_page') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-people me-2"></i>Users
+            </a>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addGlobalServerModal">
+                <i class="bi bi-plus-lg me-2"></i>Add Global Server
+            </button>
+        </div>
+    </div>
+    
+    <!-- Servers Table -->
+    <div class="card card-modern shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 50px;">ID</th>
+                            <th>Server Name</th>
+                            <th>URL</th>
+                            <th>Status</th>
+                            <th>Default</th>
+                            <th>Created By</th>
+                            <th>Created</th>
+                            <th style="width: 180px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="servers-table-body">
+                        {% if servers %}
+                        {% for server in servers %}
+                        <tr data-server-id="{{ server.id }}">
+                            <td>{{ server.id }}</td>
+                            <td><strong>{{ server.server_name }}</strong></td>
+                            <td>
+                                <code>{{ server.server_url }}</code>
+                            </td>
+                            <td>
+                                {% if server.is_active %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary"><i class="bi bi-pause-circle me-1"></i>Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if server.is_default %}
+                                <span class="badge bg-primary"><i class="bi bi-star-fill me-1"></i>Default</span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ server.created_by or 'System' }}</td>
+                            <td>{{ server.created_at.strftime('%d %b %Y') if server.created_at else 'N/A' }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-info" onclick="testServer({{ server.id }}, '{{ server.server_url }}')" title="Test Connection">
+                                        <i class="bi bi-plug"></i>
+                                    </button>
+                                    {% if not server.is_default %}
+                                    <button class="btn btn-outline-warning" onclick="setDefaultGlobalServer({{ server.id }})" title="Set as Default">
+                                        <i class="bi bi-star"></i>
+                                    </button>
+                                    {% endif %}
+                                    <button class="btn btn-outline-primary" onclick="editGlobalServer({{ server.id }})" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger" onclick="deleteGlobalServer({{ server.id }}, '{{ server.server_name }}')" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-hdd-network d-block" style="font-size: 3rem; opacity: 0.3;"></i>
+                                No global servers configured
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Info Card -->
+    <div class="card card-modern shadow-sm mt-4">
+        <div class="card-body">
+            <h6><i class="bi bi-info-circle me-2"></i>About Global Servers</h6>
+            <p class="text-muted mb-0">
+                Global community servers are available to all users in the platform. Users can also add their own personal servers in Settings. 
+                The default global server will be used when users don't have a personal default server configured.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Add Global Server Modal -->
+<div class="modal fade" id="addGlobalServerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Add Global Server</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addGlobalServerForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="new-server-name" class="form-label">Server Name</label>
+                        <input type="text" class="form-control" id="new-server-name" name="server_name" required placeholder="Production Community Server">
+                    </div>
+                    <div class="mb-3">
+                        <label for="new-server-url" class="form-label">Server URL</label>
+                        <input type="url" class="form-control" id="new-server-url" name="server_url" required placeholder="https://community.example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label for="new-server-api-key" class="form-label">API Key (Optional)</label>
+                        <input type="password" class="form-control" id="new-server-api-key" name="api_key" placeholder="Server API key for authentication">
+                    </div>
+                    <div class="mb-3">
+                        <label for="new-server-description" class="form-label">Description</label>
+                        <textarea class="form-control" id="new-server-description" name="description" rows="2" placeholder="Optional description for this server"></textarea>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="new-server-default" name="is_default">
+                        <label class="form-check-label" for="new-server-default">Set as default global server</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="new-server-active" name="is_active" checked>
+                        <label class="form-check-label" for="new-server-active">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="testNewServer()">
+                        <i class="bi bi-plug me-1"></i>Test
+                    </button>
+                    <button type="submit" class="btn btn-primary">Add Server</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Global Server Modal -->
+<div class="modal fade" id="editGlobalServerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Global Server</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editGlobalServerForm">
+                <input type="hidden" id="edit-server-id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit-server-name" class="form-label">Server Name</label>
+                        <input type="text" class="form-control" id="edit-server-name" name="server_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-server-url" class="form-label">Server URL</label>
+                        <input type="url" class="form-control" id="edit-server-url" name="server_url" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-server-api-key" class="form-label">API Key (leave blank to keep current)</label>
+                        <input type="password" class="form-control" id="edit-server-api-key" name="api_key">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-server-description" class="form-label">Description</label>
+                        <textarea class="form-control" id="edit-server-description" name="description" rows="2"></textarea>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="edit-server-default" name="is_default">
+                        <label class="form-check-label" for="edit-server-default">Set as default global server</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="edit-server-active" name="is_active">
+                        <label class="form-check-label" for="edit-server-active">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteServerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Delete Server</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete server <strong id="delete-server-name"></strong>?</p>
+                <p class="text-muted mb-0">This will remove this server for all users.</p>
+            </div>
+            <div class="modal-footer">
+                <input type="hidden" id="delete-server-id">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeleteServer()">Delete Server</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add Global Server Form
+document.getElementById('addGlobalServerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        server_name: document.getElementById('new-server-name').value,
+        server_url: document.getElementById('new-server-url').value,
+        api_key: document.getElementById('new-server-api-key').value,
+        description: document.getElementById('new-server-description').value,
+        is_default: document.getElementById('new-server-default').checked,
+        is_active: document.getElementById('new-server-active').checked
+    };
+    
+    try {
+        const response = await fetch('/admin/community-servers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast('Server added successfully!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast(data.error || 'Failed to add server', 'error');
+        }
+    } catch (error) {
+        showToast('Error adding server', 'error');
+    }
+});
+
+// Edit Global Server Form
+document.getElementById('editGlobalServerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const serverId = document.getElementById('edit-server-id').value;
+    const formData = {
+        server_name: document.getElementById('edit-server-name').value,
+        server_url: document.getElementById('edit-server-url').value,
+        api_key: document.getElementById('edit-server-api-key').value || undefined,
+        description: document.getElementById('edit-server-description').value,
+        is_default: document.getElementById('edit-server-default').checked,
+        is_active: document.getElementById('edit-server-active').checked
+    };
+    
+    try {
+        const response = await fetch(`/admin/community-servers/${serverId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast('Server updated successfully!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast(data.error || 'Failed to update server', 'error');
+        }
+    } catch (error) {
+        showToast('Error updating server', 'error');
+    }
+});
+
+async function testServer(serverId, serverUrl) {
+    showToast('Testing connection...', 'info');
+    
+    try {
+        const response = await fetch('/settings/community-servers/test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ server_url: serverUrl })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast('Connection successful!', 'success');
+        } else {
+            showToast('Connection failed: ' + (data.message || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        showToast('Error testing connection', 'error');
+    }
+}
+
+async function testNewServer() {
+    const url = document.getElementById('new-server-url').value;
+    const apiKey = document.getElementById('new-server-api-key').value;
+    
+    if (!url) {
+        showToast('Please enter a server URL', 'warning');
+        return;
+    }
+    
+    showToast('Testing connection...', 'info');
+    
+    try {
+        const response = await fetch('/settings/community-servers/test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ server_url: url, api_key: apiKey })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast('Connection successful!', 'success');
+        } else {
+            showToast('Connection failed: ' + (data.message || 'Unknown error'), 'error');
+        }
+    } catch (error) {
+        showToast('Error testing connection', 'error');
+    }
+}
+
+async function editGlobalServer(serverId) {
+    try {
+        const response = await fetch('/admin/community-servers');
+        const data = await response.json();
+        
+        if (response.ok) {
+            const server = data.servers.find(s => s.id === serverId);
+            if (server) {
+                document.getElementById('edit-server-id').value = server.id;
+                document.getElementById('edit-server-name').value = server.server_name;
+                document.getElementById('edit-server-url').value = server.server_url;
+                document.getElementById('edit-server-api-key').value = '';
+                document.getElementById('edit-server-description').value = server.description || '';
+                document.getElementById('edit-server-default').checked = server.is_default;
+                document.getElementById('edit-server-active').checked = server.is_active;
+                
+                new bootstrap.Modal(document.getElementById('editGlobalServerModal')).show();
+            }
+        }
+    } catch (error) {
+        showToast('Error loading server details', 'error');
+    }
+}
+
+async function setDefaultGlobalServer(serverId) {
+    try {
+        const response = await fetch(`/admin/community-servers/${serverId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_default: true })
+        });
+        
+        if (response.ok) {
+            showToast('Default server updated!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to update', 'error');
+        }
+    } catch (error) {
+        showToast('Error updating default', 'error');
+    }
+}
+
+function deleteGlobalServer(serverId, serverName) {
+    document.getElementById('delete-server-id').value = serverId;
+    document.getElementById('delete-server-name').textContent = serverName;
+    new bootstrap.Modal(document.getElementById('deleteServerModal')).show();
+}
+
+async function confirmDeleteServer() {
+    const serverId = document.getElementById('delete-server-id').value;
+    
+    try {
+        const response = await fetch(`/admin/community-servers/${serverId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            showToast('Server deleted successfully!', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('deleteServerModal')).hide();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to delete server', 'error');
+        }
+    } catch (error) {
+        showToast('Error deleting server', 'error');
+    }
+}
+
+function showToast(message, type = 'info') {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        document.body.appendChild(container);
+    }
+    
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'primary'}" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', toastHtml);
+    const toastEl = container.lastElementChild;
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+    
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+}
+</script>
+{% endblock %}

@@ -6,11 +6,13 @@ from flask import Blueprint, render_template, request, jsonify
 from app import db
 from app.models.project import MLProject
 from app.models.experiment import Experiment
+from app.services.auth_service import AuthService
 
 experiments_bp = Blueprint('experiments', __name__)
 
 
 @experiments_bp.route('/<int:experiment_id>')
+@AuthService.require_auth
 def detail(experiment_id):
     """Experiment detail view"""
     experiment = Experiment.query.get_or_404(experiment_id)
@@ -29,6 +31,7 @@ def detail(experiment_id):
 
 
 @experiments_bp.route('/<int:project_id>/list')
+@AuthService.require_auth
 def list_experiments(project_id):
     """List all experiments for a project"""
     project = MLProject.query.get_or_404(project_id)

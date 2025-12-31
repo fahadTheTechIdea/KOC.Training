@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+
+{% block title %}{{ theme.AppName if theme else 'ML Studio' }} - Authentication Configuration{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-shield-lock me-2"></i>Authentication Configuration</h2>
+            <p class="text-muted mb-0">Configure how users authenticate to the platform</p>
+        </div>
+        <a href="{{ url_for('admin.users_page') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Users
+        </a>
+    </div>
+    
+    <!-- Current Mode Card -->
+    <div class="card card-modern shadow-sm mb-4">
+        <div class="card-header bg-transparent">
+            <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Authentication Mode</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-check card p-3 mb-2 {{ 'border-primary bg-light' if config and config.auth_mode == 'local' else '' }}" style="cursor: pointer;" onclick="selectAuthMode('local')">
+                        <input class="form-check-input" type="radio" name="auth_mode" id="mode-local" value="local" 
+                               {{ 'checked' if config and config.auth_mode == 'local' else '' }}>
+                        <label class="form-check-label w-100" for="mode-local" style="cursor: pointer;">
+                            <h6 class="mb-1"><i class="bi bi-key me-2"></i>Local Authentication</h6>
+                            <small class="text-muted">Username/password stored locally with JWT tokens</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check card p-3 mb-2 {{ 'border-primary bg-light' if config and config.auth_mode == 'identity_server' else '' }}" style="cursor: pointer;" onclick="selectAuthMode('identity_server')">
+                        <input class="form-check-input" type="radio" name="auth_mode" id="mode-identity-server" value="identity_server"
+                               {{ 'checked' if config and config.auth_mode == 'identity_server' else '' }}>
+                        <label class="form-check-label w-100" for="mode-identity-server" style="cursor: pointer;">
+                            <h6 class="mb-1"><i class="bi bi-building me-2"></i>Identity Server</h6>
+                            <small class="text-muted">OAuth2/OIDC with external Identity Server</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check card p-3 mb-2 {{ 'border-primary bg-light' if config and config.auth_mode == 'microsoft_sso' else '' }}" style="cursor: pointer;" onclick="selectAuthMode('microsoft_sso')">
+                        <input class="form-check-input" type="radio" name="auth_mode" id="mode-microsoft" value="microsoft_sso"
+                               {{ 'checked' if config and config.auth_mode == 'microsoft_sso' else '' }}>
+                        <label class="form-check-label w-100" for="mode-microsoft" style="cursor: pointer;">
+                            <h6 class="mb-1"><i class="bi bi-microsoft me-2"></i>Microsoft Azure SSO</h6>
+                            <small class="text-muted">Sign in with Microsoft Azure AD</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Local Auth Settings -->
+    <div class="card card-modern shadow-sm mb-4" id="local-settings" style="{{ 'display: none;' if config and config.auth_mode != 'local' else '' }}">
+        <div class="card-header bg-transparent">
+            <h5 class="mb-0"><i class="bi bi-key me-2"></i>Local Authentication Settings</h5>
+        </div>
+        <div class="card-body">
+            <form id="local-form">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="jwt-secret" class="form-label">JWT Secret Key</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="jwt-secret" 
+                                   placeholder="Enter secret key or generate one">
+                            <button class="btn btn-outline-secondary" type="button" onclick="generateSecret('jwt-secret')">
+                                <i class="bi bi-shuffle"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('jwt-secret')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">Used to sign JWT tokens. Keep this secret!</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="jwt-expires" class="form-label">Token Expiration (seconds)</label>
+                        <input type="number" class="form-control" id="jwt-expires" 
+                               value="{{ config.jwt_token_expires if config else 3600 }}" min="300">
+                        <small class="text-muted">Default: 3600 (1 hour)</small>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-2"></i>Save Local Settings
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Identity Server Settings -->
+    <div class="card card-modern shadow-sm mb-4" id="identity-server-settings" style="{{ 'display: none;' if config and config.auth_mode != 'identity_server' else '' }}">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-building me-2"></i>Identity Server Settings</h5>
+            <button class="btn btn-sm btn-outline-primary" onclick="testIdentityServer()">
+                <i class="bi bi-plug me-1"></i>Test Connection
+            </button>
+        </div>
+        <div class="card-body">
+            <form id="identity-server-form">
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="is-url" class="form-label">Identity Server URL</label>
+                        <input type="url" class="form-control" id="is-url" 
+                               value="{{ config.identity_server_url if config else '' }}"
+                               placeholder="https://identity.example.com">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="is-client-id" class="form-label">Client ID</label>
+                        <input type="text" class="form-control" id="is-client-id" 
+                               value="{{ config.identity_server_client_id if config else '' }}"
+                               placeholder="mlstudio-client">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="is-client-secret" class="form-label">Client Secret</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="is-client-secret" 
+                                   placeholder="Enter client secret">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('is-client-secret')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-2"></i>Save Identity Server Settings
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Microsoft SSO Settings -->
+    <div class="card card-modern shadow-sm mb-4" id="microsoft-settings" style="{{ 'display: none;' if config and config.auth_mode != 'microsoft_sso' else '' }}">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-microsoft me-2"></i>Microsoft Azure SSO Settings</h5>
+            <button class="btn btn-sm btn-outline-primary" onclick="testMicrosoftSSO()">
+                <i class="bi bi-plug me-1"></i>Validate Config
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info mb-4">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Azure Portal Setup:</strong> Register an app in Azure Active Directory and configure redirect URI to:
+                <code>{{ request.url_root }}auth/microsoft/callback</code>
+            </div>
+            <form id="microsoft-form">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="ms-tenant-id" class="form-label">Tenant ID</label>
+                        <input type="text" class="form-control" id="ms-tenant-id" 
+                               value="{{ config.microsoft_tenant_id if config else '' }}"
+                               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="ms-client-id" class="form-label">Client (Application) ID</label>
+                        <input type="text" class="form-control" id="ms-client-id" 
+                               value="{{ config.microsoft_client_id if config else '' }}"
+                               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="ms-client-secret" class="form-label">Client Secret</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="ms-client-secret" 
+                                   placeholder="Enter client secret">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('ms-client-secret')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="ms-redirect-uri" class="form-label">Redirect URI</label>
+                        <input type="url" class="form-control" id="ms-redirect-uri" 
+                               value="{{ config.microsoft_redirect_uri if config else request.url_root + 'auth/microsoft/callback' }}"
+                               placeholder="{{ request.url_root }}auth/microsoft/callback">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-2"></i>Save Microsoft SSO Settings
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Enable/Disable Auth -->
+    <div class="card card-modern shadow-sm">
+        <div class="card-header bg-transparent">
+            <h5 class="mb-0"><i class="bi bi-toggle-on me-2"></i>Authentication Status</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="mb-1">Authentication Enabled</h6>
+                    <p class="text-muted mb-0">When disabled, all users can access the platform without login</p>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="auth-enabled" 
+                           {{ 'checked' if config and config.is_enabled else '' }}
+                           style="width: 3rem; height: 1.5rem;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Select auth mode
+function selectAuthMode(mode) {
+    document.querySelector(`input[value="${mode}"]`).checked = true;
+    
+    // Update card styles
+    document.querySelectorAll('.form-check.card').forEach(card => {
+        card.classList.remove('border-primary', 'bg-light');
+    });
+    document.querySelector(`input[value="${mode}"]`).closest('.card').classList.add('border-primary', 'bg-light');
+    
+    // Show/hide settings panels
+    document.getElementById('local-settings').style.display = mode === 'local' ? '' : 'none';
+    document.getElementById('identity-server-settings').style.display = mode === 'identity_server' ? '' : 'none';
+    document.getElementById('microsoft-settings').style.display = mode === 'microsoft_sso' ? '' : 'none';
+    
+    // Save mode change
+    saveAuthMode(mode);
+}
+
+async function saveAuthMode(mode) {
+    try {
+        const response = await fetch('/admin/auth/config', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ auth_mode: mode })
+        });
+        
+        if (response.ok) {
+            showToast('Authentication mode updated', 'success');
+        } else {
+            const data = await response.json();
+            showToast(data.error || 'Failed to update mode', 'error');
+        }
+    } catch (error) {
+        showToast('Error updating mode', 'error');
+    }
+}
+
+// Local form
+document.getElementById('local-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        jwt_secret_key: document.getElementById('jwt-secret').value || undefined,
+        jwt_token_expires: parseInt(document.getElementById('jwt-expires').value)
+    };
+    
+    await saveConfig(formData);
+});
+
+// Identity Server form
+document.getElementById('identity-server-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        identity_server_url: document.getElementById('is-url').value,
+        identity_server_client_id: document.getElementById('is-client-id').value,
+        identity_server_client_secret: document.getElementById('is-client-secret').value || undefined
+    };
+    
+    await saveConfig(formData);
+});
+
+// Microsoft form
+document.getElementById('microsoft-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        microsoft_tenant_id: document.getElementById('ms-tenant-id').value,
+        microsoft_client_id: document.getElementById('ms-client-id').value,
+        microsoft_client_secret: document.getElementById('ms-client-secret').value || undefined,
+        microsoft_redirect_uri: document.getElementById('ms-redirect-uri').value
+    };
+    
+    await saveConfig(formData);
+});
+
+// Auth enabled toggle
+document.getElementById('auth-enabled').addEventListener('change', async function() {
+    await saveConfig({ is_enabled: this.checked });
+});
+
+async function saveConfig(data) {
+    try {
+        const response = await fetch('/admin/auth/config', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            showToast('Configuration saved successfully', 'success');
+        } else {
+            showToast(result.error || 'Failed to save configuration', 'error');
+        }
+    } catch (error) {
+        showToast('Error saving configuration', 'error');
+    }
+}
+
+async function testIdentityServer() {
+    try {
+        const response = await fetch('/admin/auth/test-identity-server', {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast(data.message || 'Connection successful!', 'success');
+        } else {
+            showToast(data.error || 'Connection failed', 'error');
+        }
+    } catch (error) {
+        showToast('Error testing connection', 'error');
+    }
+}
+
+async function testMicrosoftSSO() {
+    try {
+        const response = await fetch('/admin/auth/test-microsoft-sso', {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast(data.message || 'Configuration valid!', 'success');
+        } else {
+            showToast(data.error || 'Validation failed', 'error');
+        }
+    } catch (error) {
+        showToast('Error validating configuration', 'error');
+    }
+}
+
+function generateSecret(inputId) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let secret = '';
+    for (let i = 0; i < 64; i++) {
+        secret += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById(inputId).value = secret;
+    document.getElementById(inputId).type = 'text';
+}
+
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function showToast(message, type = 'info') {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        document.body.appendChild(container);
+    }
+    
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'primary'}" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', toastHtml);
+    const toastEl = container.lastElementChild;
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+    
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+}
+</script>
+{% endblock %}

@@ -7,6 +7,7 @@ from app.models.project import MLProject
 from app.models.experiment import Experiment
 from app.services.ml_service import MLService
 from app.services.environment_manager import EnvironmentManager
+from app.services.auth_service import AuthService
 from flask import current_app
 import threading
 
@@ -23,6 +24,7 @@ def get_ml_service():
 
 
 @models_bp.route('/<int:project_id>/train', methods=['POST'])
+@AuthService.require_auth
 def train(project_id):
     """Train a model"""
     project = MLProject.query.get_or_404(project_id)
@@ -98,6 +100,7 @@ def train(project_id):
 
 
 @models_bp.route('/<int:project_id>/list')
+@AuthService.require_auth
 def list_models(project_id):
     """List all models in a project"""
     project = MLProject.query.get_or_404(project_id)
@@ -111,6 +114,7 @@ def list_models(project_id):
 
 
 @models_bp.route('/<int:experiment_id>/submit-to-competition', methods=['POST'])
+@AuthService.require_auth
 def submit_to_competition(experiment_id):
     """Submit a trained model to a Community competition"""
     from app.services.community_client import get_community_client

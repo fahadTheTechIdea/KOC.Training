@@ -8,6 +8,8 @@ from app.models.project import MLProject
 from app.services.settings_manager import get_settings_manager
 from app.services.environment_manager import EnvironmentManager
 from app.services.community_connection_service import get_community_connection_service
+from app.services.community_server_service import CommunityServerService
+from app.services.auth_service import AuthService
 from app.utils.request_validators import (
     validate_json_request,
     sanitize_string_input,
@@ -18,6 +20,7 @@ settings_bp = Blueprint('settings', __name__, url_prefix='/settings')
 
 
 @settings_bp.route('/')
+@AuthService.require_auth
 def index():
     """Settings page"""
     settings_mgr = get_settings_manager()
@@ -39,6 +42,7 @@ def index():
 
 
 @settings_bp.route('/save', methods=['POST'])
+@AuthService.require_auth
 def save():
     """Save settings"""
     settings_mgr = get_settings_manager()
@@ -58,6 +62,7 @@ def save():
 
 
 @settings_bp.route('/environments', methods=['GET'])
+@AuthService.require_auth
 def list_environments():
     """List all environments with their linked projects"""
     try:
@@ -99,6 +104,7 @@ def list_environments():
 
 
 @settings_bp.route('/environments/<env_name>/delete', methods=['POST'])
+@AuthService.require_auth
 def delete_environment(env_name):
     """Delete an environment, optionally with linked project"""
     try:
@@ -157,6 +163,7 @@ def delete_environment(env_name):
 
 
 @settings_bp.route('/community/configure', methods=['POST'])
+@AuthService.require_auth
 @error_handler
 @validate_json_request(required_fields=['url'])
 @sanitize_string_input(['url', 'api_key'])
@@ -192,6 +199,7 @@ def configure_community():
 
 
 @settings_bp.route('/community/test', methods=['POST'])
+@AuthService.require_auth
 @error_handler
 def test_community_connection():
     """Test Community server connection"""
@@ -221,6 +229,7 @@ def test_community_connection():
 
 
 @settings_bp.route('/community/disconnect', methods=['POST'])
+@AuthService.require_auth
 @error_handler
 def disconnect_community():
     """Disconnect from Community server"""
@@ -241,4 +250,112 @@ def disconnect_community():
             'success': False,
             'error': str(e)
         }), 500
+
+
+@settings_bp.route('/community-servers', methods=['GET'])
+@AuthService.require_auth
+def get_community_servers():
+    """Get available community servers (global + user-specific)"""
+    user = AuthService.get_current_user()
+    if not user:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    servers = CommunityServerService.get_available_servers(user.id)
+    return jsonify(servers), 200
+
+
+@settings_bp.route('/community-servers', methods=['POST'])
+@AuthService.require_auth
+def create_user_server():
+    """Add a user-specific community server"""
+    user = AuthService.get_current_user()
+    if not user:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Invalid request'}), 400
+    
+    server, error = CommunityServerService.create_user_server(user.id, data)
+    if error:
+        return jsonify({'error': error}), 400
+    
+    return jsonify({'server': server.to_dict()}), 201
+
+
+@settings_bp.route('/community-servers/<int:server_id>', methods=['PUT'])
+@AuthService.require_auth
+def update_user_server(server_id):
+    """Update a user-specific community server"""
+    user = AuthService.get_current_user()
+    if not user:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Invalid request'}), 400
+    
+    success, error = CommunityServerService.update_user_server(server_id, user.id, data)
+    if not success:
+        return jsonify({'error': error}), 400
+    
+    return jsonify({'message': 'Server updated successfully'}), 200
+
+
+@settings_bp.route('/community-servers/<int:server_id>', methods=['DELETE'])
+@AuthService.require_auth
+def delete_user_server(server_id):
+    """Delete a user-specific community server"""
+    user = AuthService.get_current_user()
+    if not user:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    success, error = CommunityServerService.delete_user_server(server_id, user.id)
+    if not success:
+        return jsonify({'error': error}), 400
+    
+    return jsonify({'message': 'Server deleted successfully'}), 200
+
+
+@settings_bp.route('/community-servers/<int:server_id>/set-default', methods=['POST'])
+@AuthService.require_auth
+def set_default_server(server_id):
+    """Set default server for user"""
+    user = AuthService.get_current_user()
+    if not user:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    data = request.get_json() or {}
+    server_type = data.get('type', 'user')  # 'user' or 'global'
+    
+    success, error = CommunityServerService.set_default_server(user.id, server_id, server_type)
+    if not success:
+        return jsonify({'error': error}), 400
+    
+    return jsonify({'message': 'Default server set successfully'}), 200
+
+
+@settings_bp.route('/community-servers/test', methods=['POST'])
+@AuthService.require_auth
+def test_server_connection():
+    """Test connection to a community server"""
+    user = AuthService.get_current_user()
+    if not user:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Invalid request'}), 400
+    
+    server_url = data.get('server_url')
+    api_key = data.get('api_key')
+    
+    if not server_url:
+        return jsonify({'error': 'Server URL required'}), 400
+    
+    success, error = CommunityServerService.test_connection(server_url, api_key)
+    if success:
+        return jsonify({'message': 'Connection successful'}), 200
+    else:
+        return jsonify({'error': error}), 400
 
