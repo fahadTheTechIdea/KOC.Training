@@ -1,6 +1,6 @@
 @echo off
-REM Beep.AI.Community - Windows Launcher
-REM This script automatically sets up and runs Beep.AI.Community
+REM KOC A.I. Digital Campus - Windows Launcher
+REM This script automatically sets up and runs KOC A.I. Digital Campus
 REM
 REM Usage:
 REM   run.bat                    - Normal mode
@@ -24,7 +24,7 @@ if not errorlevel 1 (
 
 echo.
 echo ============================================================
-echo   Beep.AI.Community - Windows Launcher
+echo   KOC A.I. Digital Campus - Windows Launcher
 echo ============================================================
 echo.
 

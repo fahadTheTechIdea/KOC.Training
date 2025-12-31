@@ -1,5 +1,5 @@
 """
-Configuration classes for Beep.AI.Community
+Configuration classes for KOC A.I. Digital Campus
 Supports config.json file loading with priority: config.json > Flask config > env vars > defaults
 """
 import os

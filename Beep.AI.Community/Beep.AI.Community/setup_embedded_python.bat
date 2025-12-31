@@ -1,6 +1,6 @@
 @echo off
 REM ============================================
-REM Beep.AI.Community - Embedded Python Setup
+REM KOC A.I. Digital Campus - Embedded Python Setup
 REM ============================================
 
 echo ============================================

@@ -1,10 +1,12 @@
-# Beep.AI.Community Platform
+# KOC A.I. Digital Campus
 
-A simple, friendly platform where **everyone** can share data, create projects, and learn together - no technical background required!
+**Knowledge Reservoir - Explore, Learn, Excel**
+
+KOC A.I. Digital Campus is not just an application; it is a "Knowledge Reservoir." Just as KOC explores the earth for hydrocarbons, this campus explores the workforce for new skills. It provides a safe "sandbox" where employees can refine their expertise before applying it to critical production data, ensuring that KOC's digital future.
 
 ## Vision
 
-Beep.AI.Community makes machine learning accessible to everyone. Whether you're a student, business professional, or curious explorer, you can:
+KOC A.I. Digital Campus empowers KOC employees to develop their machine learning and AI skills through hands-on competitions, collaborative projects, and knowledge sharing. Whether you're exploring data science, building models, or advancing your AI expertise, you can:
 - 📊 **Share Data** - Easy data sharing with simple uploads
 - 🚀 **Explore Projects** - Browse and learn from others' work visually  
 - 🎯 **Join Challenges** - Participate in friendly competitions with guided steps
@@ -256,4 +258,4 @@ MIT License - See LICENSE file for details
 
 ---
 
-**Made with ❤️ for the ML community - Making ML accessible to everyone!**
+**KOC A.I. Digital Campus - Knowledge Reservoir for KOC's Digital Future**

@@ -1,5 +1,6 @@
 """
-Beep.AI.Community - Flask Application Factory
+KOC A.I. Digital Campus - Flask Application Factory
+Knowledge Reservoir Platform
 """
 import os
 import logging

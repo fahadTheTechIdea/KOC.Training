@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Beep.AI.Community{% endblock %}</title>
+    <title>{% block title %}{{ branding.app_name if branding else 'KOC A.I. Digital Campus' }}{% endblock %}</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -103,7 +103,7 @@
                 {% if branding and branding.logo_url %}
                     <img src="{{ branding.logo_url }}" alt="{{ branding.app_name }}" height="32" class="me-2" style="filter: brightness(0) invert(1);">
                 {% endif %}
-                {{ branding.app_short_name if branding else 'Beep.AI.Community' }}
+                {{ branding.app_name if branding else 'KOC A.I. Digital Campus' }}
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>

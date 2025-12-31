@@ -1,5 +1,5 @@
 @echo off
-REM Seed Demo Data Script for Beep.AI.Community
+REM Seed Demo Data Script for KOC A.I. Digital Campus
 REM This will seed comprehensive demo data for the platform
 REM
 REM Usage:
@@ -11,7 +11,7 @@ cd /d "%~dp0"
 
 echo.
 echo ============================================================
-echo   Seeding Demo Data for Beep.AI.Community
+echo   Seeding Demo Data for KOC A.I. Digital Campus
 echo ============================================================
 echo.
 

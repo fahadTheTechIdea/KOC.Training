@@ -1,6 +1,6 @@
 #!/bin/bash
-# Beep.AI.Community - Linux/macOS Launcher
-# This script automatically sets up and runs Beep.AI.Community
+# KOC A.I. Digital Campus - Linux/macOS Launcher
+# This script automatically sets up and runs KOC A.I. Digital Campus
 #
 # Usage:
 #   ./run.sh                    - Normal mode
@@ -16,7 +16,7 @@ cd "$SCRIPT_DIR"
 
 echo ""
 echo "============================================================"
-echo "  Beep.AI.Community - Linux/macOS Launcher"
+echo "  KOC A.I. Digital Campus - Linux/macOS Launcher"
 echo "============================================================"
 echo ""
 

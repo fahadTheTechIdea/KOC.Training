@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Beep.AI.Community - Cross-Platform Launcher
-Automatically sets up and runs Beep.AI.Community Platform
+KOC A.I. Digital Campus - Cross-Platform Launcher
+Automatically sets up and runs KOC A.I. Digital Campus Platform
+Knowledge Reservoir - Explore, Learn, Excel
 """
 import os
 import sys
@@ -291,10 +292,10 @@ def verify_dependencies(venv_python):
         print_colored("✅ All dependencies verified", Colors.GREEN)
 
 def run_community(venv_python, extra_args=None):
-    """Run Beep.AI.Community application"""
+    """Run KOC A.I. Digital Campus application"""
     print_colored("", Colors.RESET)
     print_colored("=" * 60, Colors.CYAN)
-    print_colored("🚀 Starting Beep.AI.Community", Colors.BOLD + Colors.GREEN)
+    print_colored("🚀 Starting KOC A.I. Digital Campus", Colors.BOLD + Colors.GREEN)
     print_colored("=" * 60, Colors.CYAN)
     print_colored("", Colors.RESET)
     
@@ -322,11 +323,11 @@ def run_community(venv_python, extra_args=None):
         process.wait()
         
     except KeyboardInterrupt:
-        print_colored("\n\n👋 Beep.AI.Community stopped by user", Colors.CYAN)
+        print_colored("\n\n👋 KOC A.I. Digital Campus stopped by user", Colors.CYAN)
         if 'process' in locals():
             process.terminate()
     except Exception as e:
-        print_colored(f"\n❌ Error running Beep.AI.Community: {e}", Colors.RED)
+        print_colored(f"\n❌ Error running KOC A.I. Digital Campus: {e}", Colors.RED)
         import traceback
         traceback.print_exc()
 
@@ -334,7 +335,7 @@ def main():
     """Main launcher function"""
     # Parse command-line arguments
     import argparse
-    parser = argparse.ArgumentParser(description='Beep.AI.Community - Setup & Launcher')
+    parser = argparse.ArgumentParser(description='KOC A.I. Digital Campus - Setup & Launcher')
     parser.add_argument('--port', type=int, default=5001, help='Port number (default: 5001)')
     parser.add_argument('--host', type=str, default='127.0.0.1', help='Host address (default: 127.0.0.1)')
     parser.add_argument('--debug', action='store_true', help='Enable debug mode')
@@ -358,7 +359,7 @@ def main():
     
     print_colored("", Colors.RESET)
     print_colored("=" * 60, Colors.BLUE)
-    print_colored("  Beep.AI.Community - Setup & Launcher", Colors.BOLD)
+    print_colored("  KOC A.I. Digital Campus - Setup & Launcher", Colors.BOLD)
     print_colored("=" * 60, Colors.BLUE)
     print_colored("", Colors.RESET)
     
@@ -406,7 +407,7 @@ def main():
     # Run application
     print_colored("", Colors.RESET)
     print_colored("=" * 60, Colors.GREEN)
-    print_colored("✅ Setup Complete - Starting Beep.AI.Community", Colors.BOLD + Colors.GREEN)
+    print_colored("✅ Setup Complete - Starting KOC A.I. Digital Campus", Colors.BOLD + Colors.GREEN)
     print_colored("=" * 60, Colors.GREEN)
     if args.port != 5001 or args.host != '127.0.0.1':
         print_colored(f"   Server: http://{args.host}:{args.port}", Colors.CYAN)

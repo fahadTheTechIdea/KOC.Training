@@ -19,12 +19,12 @@ class BrandingConfig:
     Matches C# BrandingConfig structure from IdentityServer
     """
     # Application Identity
-    app_name: str = "Beep.AI.Community"
-    app_short_name: str = "Community"
-    tagline: str = "Making ML accessible to everyone"
-    copyright: str = "© 2025 TheTechIdea. All rights reserved."
+    app_name: str = "KOC A.I. Digital Campus"
+    app_short_name: str = "KOC Digital Campus"
+    tagline: str = "Knowledge Reservoir - Explore, Learn, Excel"
+    copyright: str = "© 2025 Kuwait Oil Company. All rights reserved."
     version: str = "1.0.0"
-    company_name: str = "Beep.AI.Community"  # Legacy field for backward compatibility
+    company_name: str = "Kuwait Oil Company"  # Legacy field for backward compatibility
     
     # Logos and Images
     logo_url: str = "/static/assets/images/SimpleInfoApps.png"
@@ -406,13 +406,13 @@ class BrandingService:
         },
         'general': {
             'industry': 'general',
-            'company_name': 'Beep.AI.Community',
-            'app_name': 'Beep.AI.Community',
+            'company_name': 'Kuwait Oil Company',
+            'app_name': 'KOC A.I. Digital Campus',
             'primary_color': '#4a90e2',
             'secondary_color': '#7b68ee',
             'accent_color': '#50c878',
             'background_color': '#ffffff',
-            'tagline': 'Making ML accessible to everyone',
+            'tagline': 'Knowledge Reservoir - Explore, Learn, Excel',
             'logo_url': '/static/assets/images/SimpleInfoApps.png',
             'theme_name': 'default'
         }

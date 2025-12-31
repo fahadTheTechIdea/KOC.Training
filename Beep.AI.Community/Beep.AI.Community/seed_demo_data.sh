@@ -1,5 +1,5 @@
 #!/bin/bash
-# Seed Demo Data Script for Beep.AI.Community
+# Seed Demo Data Script for KOC A.I. Digital Campus
 # This will seed comprehensive demo data for the platform
 #
 # Usage:
@@ -11,7 +11,7 @@ cd "$(dirname "$0")"
 
 echo ""
 echo "============================================================"
-echo "  Seeding Demo Data for Beep.AI.Community"
+echo "  Seeding Demo Data for KOC A.I. Digital Campus"
 echo "============================================================"
 echo ""
 

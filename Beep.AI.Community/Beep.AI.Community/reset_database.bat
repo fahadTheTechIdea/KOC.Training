@@ -1,5 +1,5 @@
 @echo off
-REM Reset database script for Beep.AI.Community
+REM Reset database script for KOC A.I. Digital Campus
 REM This will delete the database and setup state
 
 echo.

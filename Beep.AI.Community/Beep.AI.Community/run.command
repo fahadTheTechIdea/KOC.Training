@@ -1,6 +1,6 @@
 #!/bin/bash
-# Beep.AI.Community - macOS Launcher (double-clickable)
-# This script automatically sets up and runs Beep.AI.Community
+# KOC A.I. Digital Campus - macOS Launcher (double-clickable)
+# This script automatically sets up and runs KOC A.I. Digital Campus
 
 # Get script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

@@ -1,5 +1,5 @@
 """
-Reset database and setup state for Beep.AI.Community
+Reset database and setup state for KOC A.I. Digital Campus
 This script deletes the database file(s) and setup completion marker
 """
 import os

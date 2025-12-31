@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================
-# Beep.AI.Community - Embedded Python Setup (Linux/macOS)
+# KOC A.I. Digital Campus - Embedded Python Setup (Linux/macOS)
 # ============================================
 
 set -e  # Exit on error

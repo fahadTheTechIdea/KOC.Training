@@ -10,4 +10,4 @@ ns = Namespace('health', description='Health check')
 class Health(Resource):
     def get(self):
         """Health check endpoint"""
-        return {'status': 'ok', 'service': 'Beep.AI.Community'}, 200
+        return {'status': 'ok', 'service': 'KOC A.I. Digital Campus'}, 200

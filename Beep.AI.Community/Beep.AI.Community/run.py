@@ -1,5 +1,6 @@
 """
-Run Beep.AI.Community Platform
+Run KOC A.I. Digital Campus Platform
+Knowledge Reservoir - Explore, Learn, Excel
 """
 import os
 import sys
@@ -11,7 +12,7 @@ app = create_app()
 
 if __name__ == '__main__':
     # Parse command-line arguments
-    parser = argparse.ArgumentParser(description='Beep.AI.Community Platform')
+    parser = argparse.ArgumentParser(description='KOC A.I. Digital Campus Platform')
     parser.add_argument('--port', type=int, default=int(os.getenv('PORT', 5001)), help='Port number')
     parser.add_argument('--host', type=str, default=os.getenv('HOST', '127.0.0.1'), help='Host address')
     parser.add_argument('--debug', action='store_true', default=os.getenv('DEBUG', 'false').lower() == 'true', help='Enable debug mode')
@@ -30,7 +31,7 @@ if __name__ == '__main__':
     port = args.port
     debug = args.debug
     
-    print(f"Starting Beep.AI.Community on http://{host}:{port}")
+    print(f"Starting KOC A.I. Digital Campus on http://{host}:{port}")
     
     # Open browser automatically if not disabled
     if not args.no_browser:

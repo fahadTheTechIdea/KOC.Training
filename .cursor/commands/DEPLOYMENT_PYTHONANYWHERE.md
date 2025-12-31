@@ -116,10 +116,9 @@ The easiest way is to use Git (Option A above). If you must copy manually, creat
    - Click "Add a new web app"
    - Select "Manual configuration"
    - Select Python 3.10
-   - In the WSGI configuration file, point to:
-     ```
-     /home/yourusername/KOC.Training/Beep.AI.Community/Beep.AI.Community/wsgi.py
-     ```
+   - **Important:** PythonAnywhere will create a default WSGI file. You need to **edit this file** and replace its contents with the code from your project's `wsgi.py` file (see below)
+   - The WSGI file location will be something like: `/var/www/yourusername_pythonanywhere_com_wsgi.py`
+   - **OR** you can point to your project's wsgi.py file, but it's easier to copy the content into PythonAnywhere's WSGI file
 
 ### For Beep.AI.MLStudio:
 
@@ -138,26 +137,50 @@ The easiest way is to use Git (Option A above). If you must copy manually, creat
 
 ## Step 4: Configure Environment Variables
 
-### For Beep.AI.Community:
+**✅ GOOD NEWS:** The `wsgi.py` file automatically sets all required environment variables with sensible defaults, so **no manual configuration is needed!**
 
-1. **In PythonAnywhere Web tab**, scroll to "Environment variables"
-2. **Add the following variables**:
+### Automatic Environment Variables (Already Set in wsgi.py)
+
+The `wsgi.py` file automatically sets these environment variables if they're not already defined:
+- `DATABASE_URL` - SQLite database in the `instance/` folder
+- `SECRET_KEY` - Auto-generated random key (32 bytes)
+- `JWT_SECRET_KEY` - Uses SECRET_KEY as default
+- `FLASK_ENV` - Set to 'production'
+
+### Optional: Override with .env File (For Custom Values)
+
+If you want to set custom values (e.g., a specific SECRET_KEY or different database), you can create a `.env` file:
+
+1. **On PythonAnywhere**, open a Bash console
+2. **Navigate to your app directory**:
+   ```bash
+   cd ~/KOC.Training/Beep.AI.Community/Beep.AI.Community
    ```
+3. **Create a `.env` file**:
+   ```bash
+   nano .env
+   ```
+4. **Add your environment variables** (example):
+   ```
+   DATABASE_URL=sqlite:///home/fahadal70/KOC.Training/Beep.AI.Community/Beep.AI.Community/instance/community.db
+   SECRET_KEY=your-custom-secret-key-here
+   JWT_SECRET_KEY=your-custom-jwt-secret-key-here
    FLASK_ENV=production
-   SECRET_KEY=your-secret-key-here
-   DATABASE_URL=sqlite:///home/yourusername/KOC.Training/Beep.AI.Community/Beep.AI.Community/instance/community.db
-   JWT_SECRET_KEY=your-jwt-secret-key-here
    ```
+5. **Save and exit** (Ctrl+X, then Y, then Enter)
+
+**Note:** The app already uses `python-dotenv` and will automatically load the `.env` file. Values in `.env` will override the defaults set in `wsgi.py`.
 
 ### For Beep.AI.MLStudio:
 
-1. **Add environment variables**:
-   ```
-   FLASK_ENV=production
-   SECRET_KEY=your-secret-key-here
-   DATABASE_URL=sqlite:///home/yourusername/KOC.Training/Beep.AI.MLStudio/Beep.AI.MLStudio/instance/mlstudio.db
-   JWT_SECRET_KEY=your-jwt-secret-key-here
-   ```
+**Note:** MLStudio's `wsgi.py` should also be updated with automatic environment variable defaults (similar to Community). Alternatively, create a `.env` file in the MLStudio directory with:
+
+```
+FLASK_ENV=production
+SECRET_KEY=your-secret-key-here
+DATABASE_URL=sqlite:///home/yourusername/KOC.Training/Beep.AI.MLStudio/Beep.AI.MLStudio/instance/mlstudio.db
+JWT_SECRET_KEY=your-jwt-secret-key-here
+```
 
 ## Step 5: Initialize Databases
 

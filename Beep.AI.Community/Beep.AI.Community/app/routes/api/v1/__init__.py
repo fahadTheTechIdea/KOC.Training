@@ -9,8 +9,8 @@ api_v1_bp = Blueprint('api_v1', __name__, url_prefix='/api/v1')
 api = Api(
     api_v1_bp,
     version='1.0',
-    title='Beep.AI.Community API',
-    description='REST API for Beep.AI.Community Platform',
+    title='KOC A.I. Digital Campus API',
+    description='REST API for KOC A.I. Digital Campus - Knowledge Reservoir Platform',
     doc='/docs'
 )
 
