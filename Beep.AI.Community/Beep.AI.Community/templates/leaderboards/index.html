@@ -1,0 +1,479 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboards - {{ branding.app_name if branding else 'Beep.AI.Community' }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .leaderboard-hero {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: var(--text-on-primary-color);
+        padding: 3rem 0;
+        border-radius: var(--border-radius-lg);
+        margin-bottom: 3rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .leaderboard-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .leaderboard-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .leaderboard-hero h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .leaderboard-hero p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .leaderboard-section {
+        margin-bottom: 4rem;
+    }
+    
+    .section-header-modern {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+    
+    .section-header-modern h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--text-primary-color);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .section-header-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: var(--border-radius-md);
+        color: white;
+        font-size: 1.5rem;
+    }
+    
+    .leaderboard-table-modern {
+        background: var(--surface-elevated-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .leaderboard-table-modern thead {
+        background: var(--surface-color);
+    }
+    
+    .leaderboard-table-modern thead th {
+        padding: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary-color);
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--border-color);
+    }
+    
+    .leaderboard-table-modern tbody tr {
+        border-bottom: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+    }
+    
+    .leaderboard-table-modern tbody tr:hover {
+        background: var(--surface-elevated-color);
+        transform: translateX(4px);
+    }
+    
+    .leaderboard-table-modern tbody tr.top-3 {
+        background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent);
+    }
+    
+    .leaderboard-table-modern tbody td {
+        padding: 1.25rem;
+        color: var(--text-primary-color);
+        vertical-align: middle;
+    }
+    
+    .rank-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: white;
+    }
+    
+    .rank-badge.rank-1 {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    }
+    
+    .rank-badge.rank-2 {
+        background: linear-gradient(135deg, #C0C0C0, #808080);
+        box-shadow: 0 4px 12px rgba(192, 192, 192, 0.3);
+    }
+    
+    .rank-badge.rank-3 {
+        background: linear-gradient(135deg, #CD7F32, #8B4513);
+        box-shadow: 0 4px 12px rgba(205, 127, 50, 0.3);
+    }
+    
+    .rank-badge.rank-other {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-transparent-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .user-details {
+        flex: 1;
+    }
+    
+    .user-name {
+        font-weight: 600;
+        color: var(--text-primary-color);
+        margin-bottom: 0.25rem;
+    }
+    
+    .user-stats {
+        font-size: 0.875rem;
+        color: var(--text-secondary-color);
+    }
+    
+    .score-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+    
+    .competition-selector {
+        background: var(--surface-elevated-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .competition-selector label {
+        font-weight: 600;
+        color: var(--text-primary-color);
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-secondary-color);
+    }
+    
+    .empty-state img {
+        width: 120px;
+        opacity: 0.3;
+        margin-bottom: 1.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .leaderboard-hero h1 {
+            font-size: 2rem;
+        }
+        
+        .section-header-modern h2 {
+            font-size: 1.5rem;
+        }
+        
+        .leaderboard-table-modern {
+            font-size: 0.875rem;
+        }
+        
+        .leaderboard-table-modern thead th,
+        .leaderboard-table-modern tbody td {
+            padding: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="leaderboard-hero">
+    <div class="container leaderboard-hero-content">
+        <h1>
+            <img src="{{ url_for('static', filename='assets/images/features/competitions/022-medal.png') }}" 
+                 alt="Medal" 
+                 style="width: 48px; height: 48px; margin-right: 1rem; filter: brightness(0) invert(1); vertical-align: middle;"
+                 onerror="this.style.display='none';">
+            Leaderboards
+        </h1>
+        <p>See who's leading the competition and track your progress</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Global Leaderboard Section -->
+    <section class="leaderboard-section">
+        <div class="section-header-modern">
+            <h2>
+                <div class="section-header-icon">
+                    <img src="{{ url_for('static', filename='assets/icons/ai-ml/050-global network.png') }}" 
+                         alt="Global" 
+                         style="width: 28px; height: 28px; filter: brightness(0) invert(1);"
+                         onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-globe\' style=\'color: white;\'></i>';">
+                </div>
+                Global Leaderboard
+            </h2>
+        </div>
+        
+        {% if global_leaderboard and global_leaderboard|length > 0 %}
+        <div class="leaderboard-table-modern">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Rank</th>
+                        <th>User</th>
+                        <th style="text-align: center;">Competitions</th>
+                        <th style="text-align: center;">Wins</th>
+                        <th style="text-align: right;">Total Points</th>
+                        <th style="text-align: right;">Avg Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in global_leaderboard %}
+                    <tr class="{% if entry.rank <= 3 %}top-3{% endif %}">
+                        <td>
+                            <div class="rank-badge {% if entry.rank == 1 %}rank-1{% elif entry.rank == 2 %}rank-2{% elif entry.rank == 3 %}rank-3{% else %}rank-other{% endif %}" style="position: relative; display: flex; align-items: center; justify-content: center; gap: 0.25rem;">
+                                {% if entry.rank == 1 %}
+                                <img src="{{ url_for('static', filename='assets/images/features/competitions/035-crown.png') }}" 
+                                     alt="Crown" 
+                                     style="width: 20px; height: 20px; filter: brightness(0) invert(1);"
+                                     onerror="this.style.display='none';">
+                                {% elif entry.rank == 2 %}
+                                <img src="{{ url_for('static', filename='assets/images/features/competitions/009-second-prize.png') }}" 
+                                     alt="Second" 
+                                     style="width: 20px; height: 20px; filter: brightness(0) invert(1);"
+                                     onerror="this.style.display='none';">
+                                {% elif entry.rank == 3 %}
+                                <img src="{{ url_for('static', filename='assets/images/features/competitions/042-third-1.png') }}" 
+                                     alt="Third" 
+                                     style="width: 20px; height: 20px; filter: brightness(0) invert(1);"
+                                     onerror="this.style.display='none';">
+                                {% endif %}
+                                #{{ entry.rank }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    {{ entry.display_name[0].upper() if entry.display_name else entry.username[0].upper() }}
+                                </div>
+                                <div class="user-details">
+                                    <div class="user-name">{{ entry.display_name or entry.username }}</div>
+                                    <div class="user-stats">@{{ entry.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="text-align: center;">
+                            <strong>{{ entry.competitions_joined }}</strong>
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="badge-modern badge-modern-warning">
+                                <img src="{{ url_for('static', filename='assets/images/features/competitions/022-medal.png') }}" 
+                                     alt="Medal" 
+                                     style="width: 16px; height: 16px; margin-right: 0.25rem; vertical-align: middle;"
+                                     onerror="this.style.display='none';">
+                                {{ entry.wins }}
+                            </span>
+                        </td>
+                        <td style="text-align: right;">
+                            <div class="score-value">{{ entry.total_points }}</div>
+                        </td>
+                        <td style="text-align: right;">
+                            <strong>{{ entry.avg_score }}</strong>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <img src="{{ url_for('static', filename='assets/images/features/competitions/049-trophy.png') }}" 
+                 alt="No leaderboard data"
+                 onerror="this.style.display='none';">
+            <h3>No Leaderboard Data Yet</h3>
+            <p>Be the first to participate in competitions and appear on the leaderboard!</p>
+            <a href="{{ url_for('competitions.browse') }}" class="btn btn-modern btn-modern-primary mt-3">
+                <img src="{{ url_for('static', filename='assets/images/features/competitions/003-trophy-6.png') }}" 
+                     alt="Trophy" 
+                     style="width: 20px; height: 20px; margin-right: 0.5rem; vertical-align: middle;"
+                     onerror="this.style.display='none';">
+                Browse Competitions
+            </a>
+        </div>
+        {% endif %}
+    </section>
+    
+    <!-- Per-Competition Leaderboard Section -->
+    <section class="leaderboard-section">
+        <div class="section-header-modern">
+            <h2>
+                <div class="section-header-icon">
+                    <img src="{{ url_for('static', filename='assets/images/features/competitions/003-trophy-6.png') }}" 
+                         alt="Trophy" 
+                         style="width: 28px; height: 28px; filter: brightness(0) invert(1);"
+                         onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-trophy\' style=\'color: white;\'></i>';">
+                </div>
+                Competition Leaderboard
+            </h2>
+        </div>
+        
+        <div class="competition-selector">
+            <label for="competitionSelect">
+                <img src="{{ url_for('static', filename='assets/icons/ai-ml/039-filter.png') }}" 
+                     alt="Filter" 
+                     style="width: 18px; height: 18px; margin-right: 0.5rem; vertical-align: middle;"
+                     onerror="this.style.display='none';">
+                Select Competition
+            </label>
+            <select id="competitionSelect" class="form-select form-modern" onchange="window.location.href='{{ url_for('leaderboards.index') }}?competition_id=' + this.value">
+                <option value="">-- Select a competition --</option>
+                {% for comp in competitions %}
+                <option value="{{ comp.id }}" {% if selected_competition_id == comp.id %}selected{% endif %}>
+                    {{ comp.title }} {% if not comp.is_active %}(Ended){% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        {% if selected_competition %}
+        <div class="card-modern mb-3">
+            <div class="card-modern-body">
+                <h4 class="mb-2">{{ selected_competition.title }}</h4>
+                <p class="text-muted mb-0">{{ selected_competition.description[:150] if selected_competition.description else 'No description' }}{% if selected_competition.description and selected_competition.description|length > 150 %}...{% endif %}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if competition_leaderboard and competition_leaderboard|length > 0 %}
+        <div class="leaderboard-table-modern">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Rank</th>
+                        <th>User</th>
+                        <th style="text-align: right;">Score</th>
+                        <th style="text-align: center;">Submitted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in competition_leaderboard %}
+                    <tr class="{% if entry.rank <= 3 %}top-3{% endif %}">
+                        <td>
+                            <div class="rank-badge {% if entry.rank == 1 %}rank-1{% elif entry.rank == 2 %}rank-2{% elif entry.rank == 3 %}rank-3{% else %}rank-other{% endif %}" style="position: relative; display: flex; align-items: center; justify-content: center; gap: 0.25rem;">
+                                {% if entry.rank == 1 %}
+                                <img src="{{ url_for('static', filename='assets/images/features/competitions/035-crown.png') }}" 
+                                     alt="Crown" 
+                                     style="width: 20px; height: 20px; filter: brightness(0) invert(1);"
+                                     onerror="this.style.display='none';">
+                                {% elif entry.rank == 2 %}
+                                <img src="{{ url_for('static', filename='assets/images/features/competitions/009-second-prize.png') }}" 
+                                     alt="Second" 
+                                     style="width: 20px; height: 20px; filter: brightness(0) invert(1);"
+                                     onerror="this.style.display='none';">
+                                {% elif entry.rank == 3 %}
+                                <img src="{{ url_for('static', filename='assets/images/features/competitions/042-third-1.png') }}" 
+                                     alt="Third" 
+                                     style="width: 20px; height: 20px; filter: brightness(0) invert(1);"
+                                     onerror="this.style.display='none';">
+                                {% endif %}
+                                #{{ entry.rank }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    {{ entry.display_name[0].upper() if entry.display_name else entry.username[0].upper() }}
+                                </div>
+                                <div class="user-details">
+                                    <div class="user-name">{{ entry.display_name or entry.username }}</div>
+                                    <div class="user-stats">@{{ entry.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="text-align: right;">
+                            <div class="score-value">{{ entry.score }}</div>
+                        </td>
+                        <td style="text-align: center;">
+                            <small class="text-muted">
+                                {{ entry.submitted_at.strftime('%Y-%m-%d') if entry.submitted_at else '-' }}
+                            </small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% elif selected_competition_id %}
+        <div class="empty-state">
+            <img src="{{ url_for('static', filename='assets/images/features/competitions/049-trophy.png') }}" 
+                 alt="No submissions"
+                 onerror="this.style.display='none';">
+            <h3>No Submissions Yet</h3>
+            <p>This competition doesn't have any evaluated submissions yet.</p>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <img src="{{ url_for('static', filename='assets/images/features/competitions/003-trophy-6.png') }}" 
+                 alt="Select competition"
+                 onerror="this.style.display='none';">
+            <h3>Select a Competition</h3>
+            <p>Choose a competition from the dropdown above to view its leaderboard.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+

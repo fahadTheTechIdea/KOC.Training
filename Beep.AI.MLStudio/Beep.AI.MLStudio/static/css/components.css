@@ -1,0 +1,358 @@
+/**
+ * Shared Component Library for KOC Training Platform - MLStudio
+ * Reusable UI components matching Community's component library
+ */
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn-modern {
+    font-family: var(--font-mono, 'Courier New', monospace);
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md, 8px);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-modern::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-modern:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-modern-primary {
+    background: var(--theme-primary, #00ff88);
+    color: var(--text-on-primary, #000000);
+    border-color: var(--theme-primary, #00ff88);
+}
+
+.btn-modern-primary:hover {
+    background: var(--theme-primary-hover, #00cc6a);
+    border-color: var(--theme-primary-hover, #00cc6a);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--theme-primary-transparent, rgba(0, 255, 136, 0.3));
+}
+
+.btn-modern-secondary {
+    background: transparent;
+    color: var(--theme-primary, #00ff88);
+    border-color: var(--theme-primary, #00ff88);
+}
+
+.btn-modern-secondary:hover {
+    background: var(--theme-primary, #00ff88);
+    color: var(--text-on-primary, #000000);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--theme-primary-transparent, rgba(0, 255, 136, 0.2));
+}
+
+/* ============================================
+   CARDS
+   ============================================ */
+.card-modern {
+    background: var(--bg-surface, #1a1a1a);
+    border: 1px solid var(--border-color, #333333);
+    border-radius: var(--radius-lg, 12px);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.3));
+    height: 100%;
+}
+
+.card-modern:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.5));
+    border-color: var(--theme-primary, #00ff88);
+}
+
+.card-modern-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border-color, #333333);
+}
+
+.card-modern-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary, #ffffff);
+    margin: 0;
+}
+
+.card-modern-body {
+    color: var(--text-secondary, #b0b0b0);
+    line-height: 1.6;
+}
+
+.card-modern-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color, #333333);
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* ============================================
+   FORMS
+   ============================================ */
+.form-modern .form-control,
+.form-modern .form-select {
+    background: var(--bg-surface-elevated, #252525);
+    border: 2px solid var(--border-color, #333333);
+    border-radius: var(--radius-md, 8px);
+    padding: 0.75rem 1rem;
+    color: var(--text-primary, #ffffff);
+    transition: all 0.3s ease;
+}
+
+.form-modern .form-control:focus,
+.form-modern .form-select:focus {
+    background: var(--bg-surface-elevated, #252525);
+    border-color: var(--theme-primary, #00ff88);
+    color: var(--text-primary, #ffffff);
+    box-shadow: 0 0 0 0.2rem var(--theme-primary-transparent, rgba(0, 255, 136, 0.15));
+    outline: none;
+}
+
+.form-modern .form-label {
+    font-weight: 500;
+    color: var(--text-primary, #ffffff);
+    margin-bottom: 0.5rem;
+}
+
+.form-modern .form-text {
+    color: var(--text-secondary, #b0b0b0);
+    font-size: 0.875rem;
+}
+
+/* ============================================
+   MODALS
+   ============================================ */
+.modal-modern .modal-content {
+    background: var(--bg-surface, #1a1a1a);
+    border: 1px solid var(--border-color, #333333);
+    border-radius: var(--radius-lg, 12px);
+    box-shadow: var(--shadow-xl, 0 20px 60px rgba(0,0,0,0.8));
+}
+
+.modal-modern .modal-header {
+    border-bottom: 2px solid var(--border-color, #333333);
+    padding: 1.5rem;
+}
+
+.modal-modern .modal-title {
+    font-weight: 600;
+    color: var(--text-primary, #ffffff);
+}
+
+.modal-modern .modal-body {
+    padding: 1.5rem;
+    color: var(--text-primary, #ffffff);
+}
+
+.modal-modern .modal-footer {
+    border-top: 1px solid var(--border-color, #333333);
+    padding: 1rem 1.5rem;
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+.badge-modern {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md, 8px);
+    font-weight: 500;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge-modern-primary {
+    background: var(--theme-primary, #00ff88);
+    color: var(--text-on-primary, #000000);
+}
+
+.badge-modern-success {
+    background: var(--theme-success, #00ff88);
+    color: var(--text-on-primary, #000000);
+}
+
+.badge-modern-warning {
+    background: var(--theme-warning, #ffa500);
+    color: var(--text-on-primary, #000000);
+}
+
+.badge-modern-danger {
+    background: var(--theme-error, #ff4444);
+    color: var(--text-on-primary, #000000);
+}
+
+.badge-modern-info {
+    background: var(--theme-info, #00aaff);
+    color: var(--text-on-primary, #000000);
+}
+
+.badge-modern-secondary {
+    background: var(--bg-surface-elevated, #252525);
+    color: var(--text-primary, #ffffff);
+    border: 1px solid var(--border-color, #333333);
+}
+
+/* ============================================
+   ALERTS
+   ============================================ */
+.alert-modern {
+    border: 2px solid transparent;
+    border-radius: var(--radius-md, 8px);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.alert-modern-primary {
+    background: var(--theme-primary-transparent, rgba(0, 255, 136, 0.1));
+    border-color: var(--theme-primary, #00ff88);
+    color: var(--theme-primary, #00ff88);
+}
+
+.alert-modern-success {
+    background: var(--theme-primary-transparent, rgba(0, 255, 136, 0.1));
+    border-color: var(--theme-success, #00ff88);
+    color: var(--theme-success, #00ff88);
+}
+
+.alert-modern-warning {
+    background: rgba(255, 165, 0, 0.1);
+    border-color: var(--theme-warning, #ffa500);
+    color: var(--theme-warning, #ffa500);
+}
+
+.alert-modern-danger {
+    background: rgba(255, 68, 68, 0.1);
+    border-color: var(--theme-error, #ff4444);
+    color: var(--theme-error, #ff4444);
+}
+
+.alert-modern-info {
+    background: rgba(0, 170, 255, 0.1);
+    border-color: var(--theme-info, #00aaff);
+    color: var(--theme-info, #00aaff);
+}
+
+/* ============================================
+   STATS CARDS
+   ============================================ */
+.stat-card-modern {
+    background: var(--bg-surface, #1a1a1a);
+    border: 1px solid var(--border-color, #333333);
+    border-left: 4px solid var(--theme-primary, #00ff88);
+    border-radius: var(--radius-lg, 12px);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.stat-card-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.3));
+}
+
+.stat-card-modern .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--theme-primary, #00ff88);
+    margin-bottom: 0.5rem;
+}
+
+.stat-card-modern .stat-label {
+    color: var(--text-secondary, #b0b0b0);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ============================================
+   LOADING SPINNERS
+   ============================================ */
+.spinner-modern {
+    border: 3px solid rgba(0, 255, 136, 0.1);
+    border-top-color: var(--theme-primary, #00ff88);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   TABLES
+   ============================================ */
+.table-modern {
+    background: var(--bg-surface, #1a1a1a);
+    border-radius: var(--radius-lg, 12px);
+    overflow: hidden;
+}
+
+.table-modern thead {
+    background: var(--bg-surface-elevated, #252525);
+}
+
+.table-modern thead th {
+    border-bottom: 2px solid var(--border-color, #333333);
+    padding: 1rem;
+    font-weight: 600;
+    color: var(--text-primary, #ffffff);
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+}
+
+.table-modern tbody tr {
+    border-bottom: 1px solid var(--border-color, #333333);
+    transition: all 0.2s ease;
+}
+
+.table-modern tbody tr:hover {
+    background: var(--bg-surface-elevated, #252525);
+}
+
+.table-modern tbody td {
+    padding: 1rem;
+    color: var(--text-primary, #ffffff);
+}
+
+/* ============================================
+   RESPONSIVE UTILITIES
+   ============================================ */
+@media (max-width: 768px) {
+    .stat-card-modern .stat-value {
+        font-size: 2rem;
+    }
+    
+    .card-modern {
+        padding: 1rem;
+    }
+}

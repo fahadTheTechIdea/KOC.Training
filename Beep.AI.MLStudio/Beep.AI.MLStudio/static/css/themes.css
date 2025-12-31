@@ -1,0 +1,40 @@
+/**
+ * MLStudio Theme System - Legacy Support
+ * This file is kept for backward compatibility but theme is now managed
+ * by the server-side theme provider (app/services/theme_provider.py)
+ * 
+ * All theme variables are now injected via base.html from the theme provider
+ */
+
+/* Legacy CSS variables - these are now overridden by the theme provider */
+:root {
+    /* These will be overridden by the theme provider's CSS variables */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Z-Index */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+}
+
+/* Utility classes that use theme variables */
+.bg-primary {
+    background-color: var(--theme-primary, #0d6efd) !important;
+}
+
+.text-primary {
+    color: var(--theme-primary, #0d6efd) !important;
+}
+
+.border-primary {
+    border-color: var(--theme-primary, #0d6efd) !important;
+}

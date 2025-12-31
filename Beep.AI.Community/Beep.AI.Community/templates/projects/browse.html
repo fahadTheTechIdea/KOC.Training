@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Explore Projects - {{ branding.app_name if branding else 'Beep.AI.Community' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="bi bi-diagram-3" style="color: var(--theme-primary);"></i> Explore Projects</h1>
+        <p class="text-muted">Discover ML projects shared by the community</p>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="card-modern mb-4">
+    <div class="card-modern-body">
+        <form method="GET" action="{{ url_for('projects.browse') }}" class="form-modern">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <input type="text" class="form-control" name="search" placeholder="Search projects..." value="{{ search }}">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <select class="form-select" name="category">
+                        <option value="">All Categories</option>
+                        <option value="Classification" {% if category == 'Classification' %}selected{% endif %}>Classification</option>
+                        <option value="Regression" {% if category == 'Regression' %}selected{% endif %}>Regression</option>
+                        <option value="Clustering" {% if category == 'Clustering' %}selected{% endif %}>Clustering</option>
+                        <option value="Deep Learning" {% if category == 'Deep Learning' %}selected{% endif %}>Deep Learning</option>
+                        <option value="Data Analysis" {% if category == 'Data Analysis' %}selected{% endif %}>Data Analysis</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <select class="form-select" name="language">
+                        <option value="">All Languages</option>
+                        <option value="python" {% if language == 'python' %}selected{% endif %}>Python</option>
+                        <option value="r" {% if language == 'r' %}selected{% endif %}>R</option>
+                    </select>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <button type="submit" class="btn btn-modern btn-modern-primary w-100">
+                        <i class="bi bi-search me-1"></i>Search
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Projects Grid -->
+{% if projects %}
+<div class="row">
+    {% for project in projects %}
+    <div class="col-md-6 mb-4">
+        <div class="card-modern h-100">
+            {% if project.thumbnail_url %}
+            <img src="{{ project.thumbnail_url }}" class="card-modern-img-top" alt="{{ project.title }}" style="max-height: 200px; object-fit: cover;">
+            {% endif %}
+            <div class="card-modern-body">
+                <h5 class="card-modern-title">
+                    <i class="bi bi-code-slash" style="color: var(--theme-primary);"></i>
+                    {{ project.title }}
+                </h5>
+                <p class="card-text text-muted">
+                    {{ project.description[:150] if project.description else 'No description' }}...
+                </p>
+                <div class="mb-2">
+                    <small class="text-muted">
+                        <i class="bi bi-person me-1"></i>{{ project.owner or 'Unknown' }} |
+                        <i class="bi bi-git me-1"></i>{{ project.fork_count }} forks |
+                        <i class="bi bi-heart me-1"></i>{{ project.upvote_count }} upvotes |
+                        <i class="bi bi-eye me-1"></i>{{ project.view_count }} views
+                    </small>
+                </div>
+                <div class="mb-2">
+                    {% if project.category %}
+                    <span class="badge-modern badge-modern-secondary">{{ project.category }}</span>
+                    {% endif %}
+                    <span class="badge-modern badge-modern-info">{{ project.language|upper }}</span>
+                    {% if project.kernel_type %}
+                    <span class="badge-modern badge-modern-light">{{ project.kernel_type }}</span>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('projects.view', project_id=project.id) }}" class="btn btn-modern btn-modern-primary btn-sm">
+                    <i class="bi bi-eye me-1"></i>View Project
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if total > 20 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if page > 1 %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page - 1 }}{% if search %}&search={{ search }}{% endif %}{% if category %}&category={{ category }}{% endif %}{% if language %}&language={{ language }}{% endif %}">Previous</a>
+        </li>
+        {% endif %}
+        <li class="page-item active">
+            <span class="page-link">Page {{ page }}</span>
+        </li>
+        {% if page * 20 < total %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page + 1 }}{% if search %}&search={{ search }}{% endif %}{% if category %}&category={{ category }}{% endif %}{% if language %}&language={{ language }}{% endif %}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="alert-modern alert-modern-info">
+    <i class="bi bi-info-circle"></i>
+    <div>
+        <h5>No projects found</h5>
+        <p>Projects published from MLStudio will appear here.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

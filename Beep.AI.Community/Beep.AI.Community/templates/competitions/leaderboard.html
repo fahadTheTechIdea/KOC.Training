@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}{{ competition.title }} - Leaderboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .leaderboard-auto-refresh {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .auto-refresh-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--theme-success);
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="bi bi-trophy text-warning me-2"></i>{{ competition.title }} - Leaderboard</h1>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('competitions.detail', competition_id=competition.id) }}" class="btn btn-modern btn-modern-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to Competition
+        </a>
+    </div>
+</div>
+
+<div class="card-modern">
+    <div class="card-modern-header d-flex justify-content-between align-items-center">
+        <h5 class="card-modern-title mb-0"><i class="bi bi-trophy me-2"></i>Top Rankings</h5>
+        <div class="leaderboard-auto-refresh">
+            <div class="auto-refresh-indicator" id="refreshIndicator"></div>
+            <small class="text-muted">Auto-refreshing every 30s</small>
+            <button type="button" class="btn btn-modern btn-modern-secondary btn-sm" onclick="toggleAutoRefresh()" id="toggleRefreshBtn">
+                <i class="bi bi-pause me-1"></i>Pause
+            </button>
+        </div>
+    </div>
+    <div class="card-modern-body" id="leaderboardBody">
+        {% if leaderboard %}
+        <div class="table-responsive">
+            <table class="table-modern table-hover">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Username</th>
+                        <th>Score</th>
+                        <th>Submitted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in leaderboard %}
+                    <tr {% if loop.index <= 3 %}class="table-{% if loop.index == 1 %}warning{% elif loop.index == 2 %}secondary{% else %}light{% endif %}"{% endif %}>
+                        <td>
+                            {% if loop.index == 1 %}
+                            <i class="bi bi-trophy-fill text-warning me-1"></i>1st
+                            {% elif loop.index == 2 %}
+                            <i class="bi bi-award text-secondary me-1"></i>2nd
+                            {% elif loop.index == 3 %}
+                            <i class="bi bi-award-fill text-info me-1"></i>3rd
+                            {% else %}
+                            #{{ entry.rank }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ entry.username or 'User ' + entry.user_id|string }}</strong>
+                        </td>
+                        <td>
+                            <span class="badge-modern badge-modern-primary">{{ entry.score }}</span>
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                {% if entry.submitted_at %}
+                                    {{ entry.submitted_at[:19] if entry.submitted_at|string else entry.submitted_at }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert-modern alert-modern-info">
+            <i class="bi bi-info-circle"></i>
+            <div>
+                <h5>No submissions yet</h5>
+                <p class="mb-0">The leaderboard will appear once submissions are evaluated.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+let autoRefreshEnabled = true;
+let refreshInterval = null;
+const REFRESH_INTERVAL = 30000; // 30 seconds
+
+function startAutoRefresh() {
+    if (refreshInterval) return;
+    
+    refreshInterval = setInterval(() => {
+        if (autoRefreshEnabled) {
+            refreshLeaderboard();
+        }
+    }, REFRESH_INTERVAL);
+}
+
+function stopAutoRefresh() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+    }
+}
+
+function toggleAutoRefresh() {
+    autoRefreshEnabled = !autoRefreshEnabled;
+    const btn = document.getElementById('toggleRefreshBtn');
+    const indicator = document.getElementById('refreshIndicator');
+    
+    if (autoRefreshEnabled) {
+        btn.innerHTML = '<i class="bi bi-pause me-1"></i>Pause';
+        indicator.style.animation = 'pulse 2s infinite';
+        startAutoRefresh();
+    } else {
+        btn.innerHTML = '<i class="bi bi-play me-1"></i>Resume';
+        indicator.style.animation = 'none';
+        indicator.style.opacity = '0.3';
+    }
+}
+
+function refreshLeaderboard() {
+    const body = document.getElementById('leaderboardBody');
+    const originalContent = body.innerHTML;
+    
+    // Show loading state
+    body.innerHTML = '<div class="text-center py-4"><div class="spinner-modern"></div><p class="mt-2 text-muted">Refreshing leaderboard...</p></div>';
+    
+    fetch(window.location.href, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Extract leaderboard content from response
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newBody = doc.getElementById('leaderboardBody');
+        
+        if (newBody) {
+            body.innerHTML = newBody.innerHTML;
+        } else {
+            // Fallback: reload page if parsing fails
+            body.innerHTML = originalContent;
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error refreshing leaderboard:', error);
+        body.innerHTML = originalContent;
+    });
+}
+
+// Start auto-refresh on page load
+document.addEventListener('DOMContentLoaded', () => {
+    startAutoRefresh();
+});
+
+// Clean up on page unload
+window.addEventListener('beforeunload', () => {
+    stopAutoRefresh();
+});
+</script>
+{% endblock %}

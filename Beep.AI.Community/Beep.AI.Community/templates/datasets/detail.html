@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}{{ dataset.title }} - {{ branding.app_name if branding else 'Beep.AI.Community' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="bi bi-database" style="color: var(--theme-primary);"></i> {{ dataset.title }}</h1>
+        <p class="text-muted">Shared by {{ dataset.owner or 'Unknown' }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('datasets.download', dataset_id=dataset.id) }}" class="btn btn-modern" style="background: var(--theme-success); color: var(--text-on-primary);">
+            <i class="bi bi-download me-1"></i>Download
+        </a>
+    </div>
+</div>
+
+<div class="card-modern mb-4">
+    <div class="card-modern-body">
+        <h5 class="card-modern-title">Description</h5>
+        <p>{{ dataset.description or 'No description provided' }}</p>
+        
+        <div class="row mt-3">
+            <div class="col-md-3">
+                <strong>Format:</strong> {{ dataset.file_format|upper }}
+            </div>
+            <div class="col-md-3">
+                <strong>Size:</strong> {{ format_file_size(dataset.file_size) }}
+            </div>
+            <div class="col-md-3">
+                <strong>Downloads:</strong> {{ dataset.download_count }}
+            </div>
+            <div class="col-md-3">
+                <strong>Views:</strong> {{ dataset.view_count }}
+            </div>
+        </div>
+        
+        {% if dataset.category %}
+        <div class="mt-2">
+            <span class="badge-modern badge-modern-secondary">{{ dataset.category }}</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if preview and not preview.error %}
+<div class="card-modern mb-4">
+    <div class="card-modern-header">
+        <h5 class="card-modern-title"><i class="bi bi-table me-2"></i>Data Preview (First {{ preview.shape[0] }} rows)</h5>
+    </div>
+    <div class="card-modern-body">
+        <div class="table-responsive">
+            <table class="table-modern table-striped table-hover">
+                <thead>
+                    <tr>
+                        {% for col in preview.columns %}
+                        <th>{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in preview.rows %}
+                    <tr>
+                        {% for col in preview.columns %}
+                        <td>{{ row[col] }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if stats and not stats.error %}
+<div class="card-modern mb-4">
+    <div class="card-modern-header">
+        <h5 class="card-modern-title"><i class="bi bi-bar-chart me-2"></i>Dataset Statistics</h5>
+    </div>
+    <div class="card-modern-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Shape:</strong> {{ stats.shape[0] }} rows × {{ stats.shape[1] }} columns</p>
+                <p><strong>Columns:</strong> {{ stats.columns|join(', ') }}</p>
+            </div>
+            <div class="col-md-6">
+                {% if stats.numeric_stats %}
+                <h6>Numeric Statistics:</h6>
+                <pre class="bg-light p-2">{{ stats.numeric_stats|tojson(indent=2) }}</pre>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

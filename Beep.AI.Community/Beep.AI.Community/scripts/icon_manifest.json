@@ -1,0 +1,129 @@
+{
+  "version": "1.0",
+  "description": "Icon manifest for KOC Training Platform - Community application",
+  "generated_by": "copy_industry_icons.py",
+  "last_updated": "2024",
+  "icon_packs": {
+    "oil_gas": {
+      "source_packs": [
+        "5725015-oil-and-petroleum",
+        "6315514-oil-and-gas-industry",
+        "7258558-oil-and-gas-industry"
+      ],
+      "target_path": "static/assets/icons/oil_gas",
+      "use_cases": [
+        "Department branding",
+        "Challenge icons",
+        "Landing page hero",
+        "Feature cards"
+      ],
+      "icon_count": 0,
+      "sample_icons": [
+        "001-offshore platform.png",
+        "002-oil tank.png",
+        "003-oil refinery.png",
+        "009-pump jack.png"
+      ]
+    },
+    "health_medical": {
+      "source_packs": [
+        "3254044-laboratory",
+        "4482096-health-insurance"
+      ],
+      "target_path": "static/assets/icons/health_medical",
+      "use_cases": [
+        "Department branding",
+        "Medical challenge icons",
+        "Health department features"
+      ],
+      "icon_count": 0,
+      "sample_icons": [
+        "010-test tube.png",
+        "020-microscope.png",
+        "036-scientist.png",
+        "050-vaccine.png"
+      ]
+    },
+    "energy_sustainability": {
+      "source_packs": [
+        "4514697-renewable-energy",
+        "4545243-nuclear-energy",
+        "4815152-sustainable-energy",
+        "6629098-smart-meters"
+      ],
+      "target_path": "static/assets/icons/energy_sustainability",
+      "use_cases": [
+        "Department branding",
+        "Energy challenge icons",
+        "Sustainability features"
+      ],
+      "icon_count": 0,
+      "sample_icons": []
+    },
+    "industrial": {
+      "source_packs": [
+        "1064238-industrial-process"
+      ],
+      "target_path": "static/assets/icons/industrial",
+      "use_cases": [
+        "Department branding",
+        "Industrial challenge icons"
+      ],
+      "icon_count": 0,
+      "sample_icons": []
+    },
+    "competitions": {
+      "source_packs": [
+        "1021175-winning"
+      ],
+      "target_path": "static/assets/images/features/competitions",
+      "use_cases": [
+        "Leaderboard icons",
+        "Achievement badges",
+        "Competition cards",
+        "Winner announcements"
+      ],
+      "icon_count": 50,
+      "sample_icons": [
+        "003-trophy-6.png",
+        "004-crown-1.png",
+        "022-medal.png",
+        "036-podium.png",
+        "049-trophy.png"
+      ]
+    },
+    "leadership": {
+      "source_packs": [
+        "9512427-leadership"
+      ],
+      "target_path": "static/assets/images/features/leadership",
+      "use_cases": [
+        "Mentoring features",
+        "Team collaboration",
+        "Certificates",
+        "Skills development"
+      ],
+      "icon_count": 50,
+      "sample_icons": [
+        "008-certificate.png",
+        "016-teamwork.png",
+        "025-achievement.png",
+        "034-leadership.png",
+        "050-conversation.png"
+      ]
+    }
+  },
+  "usage_notes": {
+    "department_icons": "Use department-specific icons for department pages, challenge cards, and department filtering UI",
+    "competition_icons": "Use competition icons for leaderboards, achievement badges, and winner announcements",
+    "leadership_icons": "Use leadership icons for mentoring features, team collaboration, and skill development sections",
+    "icon_format": "All icons are in PNG format and optimized for web use",
+    "path_reference": "Icons are referenced using Flask's url_for('static', filename='...') helper"
+  },
+  "koc_branding": {
+    "primary_color": "#003366",
+    "secondary_color": "#FFD700",
+    "logo_path": "static/assets/images/branding/KOC_Logo_for_wikipedia_*.png"
+  }
+}
+

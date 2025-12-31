@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Settings{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card-modern shadow">
+                <div class="card-modern-header" style="background: var(--theme-primary); color: var(--text-on-primary);">
+                    <h4 class="card-modern-title mb-0">
+                        <i class="bi bi-gear me-2"></i>Admin Settings - Branding Configuration
+                    </h4>
+                </div>
+                <div class="card-modern-body">
+                    <div class="alert-modern alert-modern-info">
+                        <i class="bi bi-info-circle"></i>
+                        <div>Update your application branding settings. Changes will be reflected immediately across the application.</div>
+                    </div>
+
+                    <form id="brandingForm" class="form-modern">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Current Logo</h5>
+                                {% if branding and branding.logo_url %}
+                                <div class="mb-3">
+                                    <img src="{{ branding.logo_url }}" alt="Current Logo" class="img-thumbnail" style="max-height: 150px;">
+                                </div>
+                                {% else %}
+                                <p class="text-muted">No logo currently set</p>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Upload New Logo</h5>
+                                <div class="mb-3">
+                                    <label for="logoFile" class="form-label">Logo File</label>
+                                    <input type="file" class="form-control" id="logoFile" name="logo" accept="image/*">
+                                    <small class="form-text text-muted">PNG, JPG, JPEG, GIF, SVG, ICO, or WEBP (max 5MB)</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="companyName" class="form-label">Company Name</label>
+                                <input type="text" class="form-control" id="companyName" name="company_name" 
+                                       value="{{ branding.company_name if branding and branding.company_name else '' }}" 
+                                       placeholder="Enter company name">
+                                <small class="form-text text-muted">This will be displayed in the navbar</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Industry</label>
+                                <input type="text" class="form-control" value="{{ branding.industry|title if branding else 'General' }}" readonly>
+                                <small class="form-text text-muted">Industry cannot be changed after initial setup</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">App Name</label>
+                                <input type="text" class="form-control" value="{{ branding.app_name if branding else '' }}" readonly>
+                                <small class="form-text text-muted">Full application name (automatically generated from company name)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">App Short Name</label>
+                                <input type="text" class="form-control" value="{{ branding.app_short_name if branding else '' }}" readonly>
+                                <small class="form-text text-muted">Short name displayed in navbar (same as company name)</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('main.index') }}" class="btn btn-modern btn-modern-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-modern btn-modern-primary" id="saveBtn">
+                                <i class="bi bi-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+
+                        <div id="messageDiv" class="mt-3" style="display: none;"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('brandingForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const btn = document.getElementById('saveBtn');
+    const messageDiv = document.getElementById('messageDiv');
+    messageDiv.style.display = 'none';
+    
+    const formData = new FormData();
+    
+    const companyName = document.getElementById('companyName').value.trim();
+    if (companyName) {
+        formData.append('company_name', companyName);
+    }
+    
+    // Handle logo file upload
+    const logoFile = document.getElementById('logoFile').files[0];
+    if (logoFile) {
+        formData.append('logo', logoFile);
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-modern spinner-modern-sm me-2"></span>Saving...';
+    
+    try {
+        const response = await fetch('{{ url_for("admin.update_branding") }}', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + (localStorage.getItem('access_token') || '')
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            messageDiv.className = 'alert-modern alert-modern-success mt-3';
+            messageDiv.innerHTML = '<i class="bi bi-check-circle"></i><div>' + (data.message || 'Branding updated successfully!') + '</div>';
+            messageDiv.style.display = 'flex';
+            
+            // Reload page after a short delay to show updated branding
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            messageDiv.className = 'alert-modern alert-modern-danger mt-3';
+            messageDiv.innerHTML = '<i class="bi bi-exclamation-circle"></i><div>' + (data.message || 'Failed to update branding') + '</div>';
+            messageDiv.style.display = 'flex';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-save me-2"></i>Save Changes';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        messageDiv.className = 'alert-modern alert-modern-danger mt-3';
+        messageDiv.innerHTML = '<i class="bi bi-exclamation-circle"></i><div>Network error. Please try again.</div>';
+        messageDiv.style.display = 'flex';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-save me-2"></i>Save Changes';
+    }
+});
+</script>
+{% endblock %}

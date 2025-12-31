@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card-modern">
+            <div class="card-modern-header">
+                <h4 class="card-modern-title"><i class="bi bi-pencil me-2"></i>Edit Profile</h4>
+            </div>
+            <div class="card-modern-body">
+                <form id="profileForm" method="POST" action="{{ url_for('profile.update') }}" class="form-modern">
+                    <div class="mb-3">
+                        <label for="display_name" class="form-label">Display Name</label>
+                        <input type="text" class="form-control" id="display_name" name="display_name" 
+                               value="{{ user.profile.display_name if user.profile and user.profile.display_name else user.username }}" 
+                               placeholder="Your display name">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="bio" class="form-label">Bio</label>
+                        <textarea class="form-control" id="bio" name="bio" rows="4" 
+                                  placeholder="Tell us about yourself">{{ user.profile.bio if user.profile and user.profile.bio else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="avatar_url" class="form-label">Avatar URL</label>
+                        <input type="url" class="form-control" id="avatar_url" name="avatar_url" 
+                               value="{{ user.profile.avatar_url if user.profile and user.profile.avatar_url else '' }}" 
+                               placeholder="https://example.com/avatar.jpg">
+                        <small class="form-text text-muted">Enter a URL to your avatar image</small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   value="{{ user.profile.location if user.profile and user.profile.location else '' }}" 
+                                   placeholder="City, Country">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="organization" class="form-label">Organization</label>
+                            <input type="text" class="form-control" id="organization" name="organization" 
+                                   value="{{ user.profile.organization if user.profile and user.profile.organization else '' }}" 
+                                   placeholder="Your organization">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="website" class="form-label">Website</label>
+                        <input type="url" class="form-control" id="website" name="website" 
+                               value="{{ user.profile.website if user.profile and user.profile.website else '' }}" 
+                               placeholder="https://yourwebsite.com">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="skills" class="form-label">Skills (comma-separated)</label>
+                        <input type="text" class="form-control" id="skills" name="skills" 
+                               value="{{ user.profile.skills if user.profile and user.profile.skills else '' }}" 
+                               placeholder="Python, Machine Learning, Data Science">
+                        <small class="form-text text-muted">Separate skills with commas</small>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('profile.view', username=user.username) }}" class="btn btn-modern btn-modern-secondary">
+                            <i class="bi bi-x me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-modern btn-modern-primary">
+                            <i class="bi bi-save me-1"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

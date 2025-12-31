@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Create Discussion - {{ branding.app_name if branding else 'Beep.AI.Community' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="bi bi-plus-circle" style="color: var(--theme-primary);"></i> Create Discussion</h1>
+        <p class="text-muted">Start a new discussion or ask a question</p>
+    </div>
+</div>
+
+<div class="card-modern">
+    <div class="card-modern-header">
+        <h5 class="card-modern-title">Discussion Details</h5>
+    </div>
+    <div class="card-modern-body">
+        <form method="POST" action="{{ url_for('discussions.create') }}" class="form-modern">
+            {% if topic_type %}
+            <input type="hidden" name="topic_type" value="{{ topic_type }}">
+            {% endif %}
+            {% if topic_id %}
+            <input type="hidden" name="topic_id" value="{{ topic_id }}">
+            {% endif %}
+            
+            <div class="mb-3">
+                <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="title" name="title" required placeholder="Enter a clear, descriptive title">
+            </div>
+
+            <div class="mb-3">
+                <label for="content" class="form-label">Content <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="content" name="content" rows="10" required placeholder="Describe your question or discussion topic in detail..."></textarea>
+                <small class="form-text">Provide as much detail as possible to help others understand and respond.</small>
+            </div>
+
+            {% if not topic_type %}
+            <div class="mb-3">
+                <label for="topic_type" class="form-label">Topic Type (Optional)</label>
+                <select class="form-select" id="topic_type" name="topic_type">
+                    <option value="">General Discussion</option>
+                    <option value="competition">Competition</option>
+                    <option value="dataset">Dataset</option>
+                    <option value="project">Project</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="topic_id" class="form-label">Topic ID (Optional)</label>
+                <input type="number" class="form-control" id="topic_id" name="topic_id" placeholder="If linking to a specific competition, dataset, or project">
+            </div>
+            {% endif %}
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('discussions.browse') }}" class="btn btn-modern btn-modern-secondary">
+                    <i class="bi bi-x me-1"></i>Cancel
+                </a>
+                <button type="submit" class="btn btn-modern btn-modern-primary">
+                    <i class="bi bi-check me-1"></i>Create Discussion
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

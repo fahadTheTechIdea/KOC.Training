@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card-modern shadow">
+            <div class="card-modern-body p-5">
+                <div class="text-center mb-4">
+                    {% if branding and branding.logo_url %}
+                    <img src="{{ branding.logo_url }}" alt="{{ branding.app_name }}" height="64" class="mb-3">
+                    {% endif %}
+                    <h2 class="card-modern-title mb-2">Welcome Back</h2>
+                    <p class="text-muted">{{ branding.tagline if branding else 'Sign in to your account' }}</p>
+                </div>
+
+                {% if error or request.args.get('error') %}
+                <div class="alert-modern alert-modern-danger" role="alert">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <div>
+                        {{ error or request.args.get('error', 'An error occurred') }}
+                        {% if error_description or request.args.get('error_description') %}
+                        <br><small>{{ error_description or request.args.get('error_description', '') }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if auth_mode == 'local' %}
+                <!-- Local Authentication Mode: Show Login/Register Forms -->
+                <ul class="nav nav-tabs mb-4" id="authTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab">
+                            <i class="bi bi-person-plus me-2"></i>Register
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="authTabContent">
+                    <!-- Login Tab -->
+                    <div class="tab-pane fade show active" id="login" role="tabpanel">
+                        {% set microsoft_sso = config.get('MICROSOFT_SSO_ENABLED', False) if config else False %}
+                        {% if microsoft_sso %}
+                        <div class="mb-4">
+                            <a href="{{ url_for('auth.microsoft_login') }}" class="btn btn-modern btn-modern-primary w-100 mb-3" style="background: #0078d4; border-color: #0078d4;">
+                                <i class="bi bi-microsoft me-2"></i>Sign in with Microsoft
+                            </a>
+                            <div class="text-center text-muted mb-3">
+                                <small>or</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <form id="loginForm" class="form-modern">
+                            <div class="mb-3">
+                                <label for="loginUsername" class="form-label">Username or Email</label>
+                                <input type="text" class="form-control" id="loginUsername" name="username_or_email" required>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="loginPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="loginPassword" name="password" required>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">Remember me</label>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-modern btn-modern-primary" id="loginBtn">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                                </button>
+                            </div>
+                            <div id="loginError" class="alert-modern alert-modern-danger mt-3" style="display: none;"></div>
+                        </form>
+                    </div>
+
+                    <!-- Register Tab -->
+                    <div class="tab-pane fade" id="register" role="tabpanel">
+                        <form id="registerForm" class="form-modern">
+                            <div class="mb-3">
+                                <label for="registerUsername" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="registerUsername" name="username" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]+">
+                                <small class="form-text">3-20 characters, alphanumeric and underscores only</small>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="registerEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="registerEmail" name="email" required>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="registerPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="registerPassword" name="password" required minlength="8">
+                                <small class="form-text">Minimum 8 characters</small>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-modern btn-modern-primary" id="registerBtn">
+                                    <i class="bi bi-person-plus me-2"></i>Create Account
+                                </button>
+                            </div>
+                            <div id="registerError" class="alert-modern alert-modern-danger mt-3" style="display: none;"></div>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Identity Server Mode: Should not reach here (redirects server-side) -->
+                <div class="alert-modern alert-modern-info">
+                    <i class="bi bi-info-circle"></i>
+                    <div>Redirecting to Identity Server...</div>
+                </div>
+                <div class="text-center">
+                    <div class="spinner-modern" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+{% if auth_mode == 'local' %}
+// Login form handling
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const errorDiv = document.getElementById('loginError');
+    errorDiv.style.display = 'none';
+    
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-modern spinner-modern-sm me-2"></span>Logging in...';
+    
+    try {
+        const response = await fetch('/api/v1/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username_or_email: username,
+                password: password
+            }),
+            credentials: 'include'  // Include cookies in request
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.access_token) {
+            // Store token in localStorage
+            localStorage.setItem('access_token', data.access_token);
+            if (data.user) {
+                localStorage.setItem('user', JSON.stringify(data.user));
+            }
+            // Redirect to home
+            window.location.href = '/';
+        } else {
+            errorDiv.innerHTML = '<i class="bi bi-exclamation-circle"></i><div>' + (data.error || 'Login failed. Please check your credentials.') + '</div>';
+            errorDiv.style.display = 'flex';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Login';
+        }
+    } catch (error) {
+        errorDiv.innerHTML = '<i class="bi bi-exclamation-circle"></i><div>Network error. Please try again.</div>';
+        errorDiv.style.display = 'flex';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Login';
+    }
+});
+
+// Register form handling
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('registerBtn');
+    const errorDiv = document.getElementById('registerError');
+    errorDiv.style.display = 'none';
+    
+    const username = document.getElementById('registerUsername').value.trim();
+    const email = document.getElementById('registerEmail').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    // Validate passwords match
+    if (password !== confirmPassword) {
+        errorDiv.textContent = 'Passwords do not match';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-modern spinner-modern-sm me-2"></span>Creating account...';
+    
+    try {
+        const response = await fetch('/api/v1/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                email: email,
+                password: password
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // After registration, automatically log in
+            const loginResponse = await fetch('/api/v1/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username_or_email: username,
+                    password: password
+                }),
+                credentials: 'include'  // Include cookies in request
+            });
+            
+            const loginData = await loginResponse.json();
+            if (loginResponse.ok && loginData.access_token) {
+                // Cookie is already set by server, but also store in localStorage for API calls
+                localStorage.setItem('access_token', loginData.access_token);
+                if (loginData.user) {
+                    localStorage.setItem('user', JSON.stringify(loginData.user));
+                }
+                window.location.href = '/';
+            } else {
+                // Registration successful but login failed - show success message
+                errorDiv.innerHTML = '<i class="bi bi-check-circle"></i><div>Account created successfully! Please <a href="#login" onclick="document.getElementById(\'login-tab\').click(); return false;">login</a> to continue.</div>';
+                errorDiv.className = 'alert-modern alert-modern-success mt-3';
+                errorDiv.style.display = 'flex';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Create Account';
+            }
+        } else {
+            errorDiv.innerHTML = '<i class="bi bi-exclamation-circle"></i><div>' + (data.error || 'Registration failed. Please try again.') + '</div>';
+            errorDiv.style.display = 'flex';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Create Account';
+        }
+    } catch (error) {
+        errorDiv.innerHTML = '<i class="bi bi-exclamation-circle"></i><div>Network error. Please try again.</div>';
+        errorDiv.style.display = 'flex';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Create Account';
+    }
+});
+{% endif %}
+</script>
+{% endblock %}

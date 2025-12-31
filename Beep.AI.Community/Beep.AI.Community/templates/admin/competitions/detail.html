@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Competition Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="fas fa-trophy text-warning"></i> {{ competition.title }}
+                {% if competition.is_active %}
+                    <span class="badge bg-success">Active</span>
+                {% else %}
+                    <span class="badge bg-secondary">Inactive</span>
+                {% endif %}
+            </h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('admin.competitions_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+            <a href="{{ url_for('admin.competitions_edit', competition_id=competition.id) }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-users text-primary"></i></h5>
+                    <h3>{{ stats.participant_count or 0 }}</h3>
+                    <p class="text-muted mb-0">Participants</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-upload text-success"></i></h5>
+                    <h3>{{ stats.submission_count or 0 }}</h3>
+                    <p class="text-muted mb-0">Total Submissions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-check-circle text-info"></i></h5>
+                    <h3>{{ stats.evaluated_submissions or 0 }}</h3>
+                    <p class="text-muted mb-0">Evaluated</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-clock text-warning"></i></h5>
+                    <h3>{{ stats.pending_submissions or 0 }}</h3>
+                    <p class="text-muted mb-0">Pending</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Competition Details -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Competition Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Description:</strong>
+                        <p>{{ competition.description }}</p>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Organizer:</strong> {{ competition.organizer.username if competition.organizer else 'Unknown' }}<br>
+                            <strong>Evaluation Metric:</strong> {{ competition.evaluation_metric or 'N/A' }}<br>
+                            <strong>Leaderboard Type:</strong> {{ competition.leaderboard_type|title }}<br>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Start Date:</strong> {{ competition.start_date.strftime('%Y-%m-%d %H:%M') if competition.start_date else 'N/A' }}<br>
+                            <strong>End Date:</strong> {{ competition.end_date.strftime('%Y-%m-%d %H:%M') if competition.end_date else 'N/A' }}<br>
+                            <strong>Created:</strong> {{ competition.created_at.strftime('%Y-%m-%d') if competition.created_at else 'N/A' }}<br>
+                        </div>
+                    </div>
+                    {% if competition.prize_description %}
+                    <div class="mt-3">
+                        <strong>Prize:</strong>
+                        <div class="alert alert-info mb-0">{{ competition.prize_description }}</div>
+                    </div>
+                    {% endif %}
+                    <div class="mt-3">
+                        <strong>Submission Limits:</strong><br>
+                        Max per day: {{ competition.max_submissions_per_day }}<br>
+                        Max total: {{ competition.max_total_submissions }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-tools"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('admin.competitions_edit', competition_id=competition.id) }}" class="btn btn-primary w-100 mb-2">
+                        <i class="fas fa-edit"></i> Edit Competition
+                    </a>
+                    <a href="{{ url_for('admin.competitions_submissions', competition_id=competition.id) }}" class="btn btn-info w-100 mb-2">
+                        <i class="fas fa-list"></i> View All Submissions
+                    </a>
+                    <button class="btn btn-warning w-100 mb-2 toggle-active-btn" 
+                            data-competition-id="{{ competition.id }}"
+                            data-is-active="{{ 'true' if competition.is_active else 'false' }}">
+                        <i class="fas fa-toggle-{% if competition.is_active %}on{% else %}off{% endif %}"></i>
+                        {% if competition.is_active %}Deactivate{% else %}Activate{% endif %}
+                    </button>
+                    <button class="btn btn-danger w-100 delete-btn" 
+                            data-competition-id="{{ competition.id }}"
+                            data-competition-title="{{ competition.title }}">
+                        <i class="fas fa-trash"></i> Delete Competition
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Submissions -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5><i class="fas fa-upload"></i> Recent Submissions</h5>
+            <a href="{{ url_for('admin.competitions_submissions', competition_id=competition.id) }}" class="btn btn-sm btn-info">
+                View All <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        <div class="card-body">
+            {% if submissions[:10] %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for submission in submissions[:10] %}
+                        <tr>
+                            <td>{{ submission.id }}</td>
+                            <td>{{ submission.user.username if submission.user else 'Unknown' }}</td>
+                            <td>
+                                {% if submission.score is not none %}
+                                    {{ "%.4f"|format(submission.score) }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if submission.status == 'evaluated' %}
+                                    <span class="badge bg-success">Evaluated</span>
+                                {% elif submission.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ submission.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ submission.submitted_at.strftime('%Y-%m-%d %H:%M') if submission.submitted_at else 'N/A' }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary evaluate-btn" 
+                                        data-submission-id="{{ submission.id }}"
+                                        title="Evaluate">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No submissions yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Toggle active
+document.querySelector('.toggle-active-btn')?.addEventListener('click', async function() {
+    const competitionId = this.dataset.competitionId;
+    const isActive = this.dataset.isActive === 'true';
+    
+    if (!confirm(`Are you sure you want to ${isActive ? 'deactivate' : 'activate'} this competition?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`{{ url_for('admin.competitions_toggle_active', competition_id=0) }}`.replace('0', competitionId), {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Failed to update'));
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+
+// Delete
+document.querySelector('.delete-btn')?.addEventListener('click', function() {
+    const competitionId = this.dataset.competitionId;
+    const competitionTitle = this.dataset.competitionTitle;
+    
+    if (!confirm(`Are you sure you want to delete "${competitionTitle}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `{{ url_for('admin.competitions_delete', competition_id=0) }}`.replace('0', competitionId);
+    document.body.appendChild(form);
+    form.submit();
+});
+
+// Evaluate submission
+document.querySelectorAll('.evaluate-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const submissionId = this.dataset.submissionId;
+        const score = prompt('Enter score for this submission:');
+        if (score !== null && score !== '') {
+            fetch(`{{ url_for('admin.competitions_evaluate_submission', competition_id=competition.id, submission_id=0) }}`.replace('0', submissionId), {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
+                body: JSON.stringify({score: parseFloat(score)})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to evaluate'));
+                }
+            })
+            .catch(err => alert('Error: ' + err.message));
+        }
+    });
+});
+</script>
+{% endblock %}

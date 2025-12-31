@@ -1,0 +1,850 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Edit Competition{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-edit text-primary"></i> Edit Competition: {{ competition.title }}</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('admin.competitions_detail', competition_id=competition.id) }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>Competition Details</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin.competitions_edit', competition_id=competition.id) }}">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="title" name="title" value="{{ competition.title }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="description" name="description" rows="5" required>{{ competition.description }}</textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="dataset_id" class="form-label">Dataset</label>
+                        <select class="form-select" id="dataset_id" name="dataset_id">
+                            <option value="0">None</option>
+                            {% for dataset in datasets %}
+                            <option value="{{ dataset.id }}" {% if competition.dataset_id == dataset.id %}selected{% endif %}>
+                                {{ dataset.title }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="evaluation_metric" class="form-label">Evaluation Metric</label>
+                        <input type="text" class="form-control" id="evaluation_metric" name="evaluation_metric" 
+                               value="{{ competition.evaluation_metric or '' }}" placeholder="e.g., Accuracy, F1-Score">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <input type="datetime-local" class="form-control" id="start_date" name="start_date"
+                               value="{% if competition.start_date %}{{ competition.start_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <input type="datetime-local" class="form-control" id="end_date" name="end_date"
+                               value="{% if competition.end_date %}{{ competition.end_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="max_submissions_per_day" class="form-label">Max Submissions per Day</label>
+                        <input type="number" class="form-control" id="max_submissions_per_day" name="max_submissions_per_day" 
+                               value="{{ competition.max_submissions_per_day }}" min="1">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="max_total_submissions" class="form-label">Max Total Submissions</label>
+                        <input type="number" class="form-control" id="max_total_submissions" name="max_total_submissions" 
+                               value="{{ competition.max_total_submissions }}" min="1">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="leaderboard_type" class="form-label">Leaderboard Type</label>
+                    <select class="form-select" id="leaderboard_type" name="leaderboard_type">
+                        <option value="public" {% if competition.leaderboard_type == 'public' %}selected{% endif %}>Public</option>
+                        <option value="private" {% if competition.leaderboard_type == 'private' %}selected{% endif %}>Private</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="is_active" class="form-label">Status</label>
+                    <select class="form-select" id="is_active" name="is_active">
+                        <option value="true" {% if competition.is_active %}selected{% endif %}>Active</option>
+                        <option value="false" {% if not competition.is_active %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="prize_description" class="form-label">Prize Description</label>
+                    <textarea class="form-control" id="prize_description" name="prize_description" rows="3">{{ competition.prize_description or '' }}</textarea>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('admin.competitions_detail', competition_id=competition.id) }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Step 1: Upload Dataset File -->
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h5><i class="fas fa-database"></i> Step 1: Upload Dataset File</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Upload a dataset file to preview its columns and configure the competition.
+            </div>
+
+            <!-- Current Dataset Status -->
+            {% if competition.training_data_path or competition.test_data_path %}
+            <div class="mb-3">
+                <h6>Current Dataset Files</h6>
+                <div class="row">
+                    {% if competition.training_data_path %}
+                    <div class="col-md-6">
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <strong>Training Data:</strong><br>
+                                <code>{{ competition.training_data_path }}</code>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if competition.test_data_path %}
+                    <div class="col-md-6">
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <strong>Test Data:</strong><br>
+                                <code>{{ competition.test_data_path }}</code>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% if competition.train_test_split_ratio %}
+                <small class="text-muted">Split Ratio: {{ (competition.train_test_split_ratio * 100)|int }}% train / {{ ((1 - competition.train_test_split_ratio) * 100)|int }}% test</small>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <form id="previewColumnsForm" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="dataset_file" class="form-label">Upload Dataset File</label>
+                    <input type="file" class="form-control" id="dataset_file" name="dataset_file" accept=".csv,.parquet,.json,.xlsx,.xls" required>
+                    <small class="form-text text-muted">Supported formats: CSV, Parquet, JSON, Excel</small>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-eye"></i> Preview Columns
+                </button>
+            </form>
+            <div id="previewMessage" class="mt-3" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Step 2: Select Task Type (shown after preview) -->
+    <div class="card mt-4" id="taskTypeSection" style="display: none;">
+        <div class="card-header bg-primary text-white">
+            <h5><i class="fas fa-tasks"></i> Step 2: Select Task Type</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> Select the type of ML task. The system will automatically determine the evaluation metric.
+            </div>
+
+            <form id="taskTypeForm">
+                <div class="mb-3">
+                    <label for="task_type" class="form-label">Task Type <span class="text-danger">*</span></label>
+                    <select class="form-select" id="task_type" name="task_type" required>
+                        <option value="">Select task type...</option>
+                        <optgroup label="Basic Tasks">
+                            <option value="classification" {% if competition.task_type == 'classification' %}selected{% endif %}>Classification</option>
+                            <option value="regression" {% if competition.task_type == 'regression' %}selected{% endif %}>Regression</option>
+                        </optgroup>
+                        <optgroup label="Advanced Tasks">
+                            <option value="multilabel_classification" {% if competition.task_type == 'multilabel_classification' %}selected{% endif %}>Multi-label Classification</option>
+                            <option value="multioutput_regression" {% if competition.task_type == 'multioutput_regression' %}selected{% endif %}>Multi-output Regression</option>
+                            <option value="time_series" {% if competition.task_type == 'time_series' %}selected{% endif %}>Time Series Forecasting</option>
+                            <option value="text_classification" {% if competition.task_type == 'text_classification' %}selected{% endif %}>Text Classification</option>
+                            <option value="object_detection" {% if competition.task_type == 'object_detection' %}selected{% endif %}>Object Detection</option>
+                            <option value="segmentation" {% if competition.task_type == 'segmentation' %}selected{% endif %}>Image Segmentation</option>
+                            <option value="ranking" {% if competition.task_type == 'ranking' %}selected{% endif %}>Ranking / Learning to Rank</option>
+                            <option value="recommendation" {% if competition.task_type == 'recommendation' %}selected{% endif %}>Recommendation</option>
+                        </optgroup>
+                    </select>
+                    <small class="form-text text-muted">Select the type of ML task for this competition</small>
+                </div>
+
+                <div class="mb-3" id="predictionFormatDiv" style="display: none;">
+                    <label for="prediction_format" class="form-label">Prediction Format</label>
+                    <select class="form-select" id="prediction_format" name="prediction_format">
+                        <option value="">Auto-detect</option>
+                        <option value="classes">Classes</option>
+                        <option value="probabilities">Probabilities</option>
+                    </select>
+                    <small class="form-text text-muted">Expected format of model predictions (optional, system will try to auto-detect)</small>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Step 3: Select Columns (shown after task type selection) -->
+    <div class="card mt-4" id="columnSelectionSection" style="display: none;">
+        <div class="card-header bg-warning text-dark">
+            <h5><i class="fas fa-columns"></i> Step 3: Select Columns</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <i class="fas fa-info-circle"></i> Select the target column(s) and ID column from the detected columns.
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Available Columns:</label>
+                <div id="availableColumnsList" class="p-2 bg-light border rounded">
+                    <small class="text-muted">Columns will appear here after preview</small>
+                </div>
+            </div>
+
+            <form id="columnSelectionForm">
+                <!-- Single target column selection (for single-target tasks) -->
+                <div class="mb-3" id="singleTargetColumnDiv">
+                    <label for="target_column_select" class="form-label">Target Column <span class="text-danger">*</span></label>
+                    <select class="form-select" id="target_column_select" name="target_column_select">
+                        <option value="">Select target column...</option>
+                    </select>
+                    <small class="form-text text-muted">Column name containing ground truth labels</small>
+                    <div id="targetColumnError" class="text-danger mt-1" style="display: none;"></div>
+                </div>
+
+                <!-- Multiple target columns selection (for multi-target tasks) -->
+                <div class="mb-3" id="multiTargetColumnsDiv" style="display: none;">
+                    <label for="target_columns_select" class="form-label">Target Columns <span class="text-danger">*</span></label>
+                    <select class="form-select" id="target_columns_select" name="target_columns_select" multiple size="5">
+                    </select>
+                    <small class="form-text text-muted">Select multiple target columns (hold Ctrl/Cmd to select multiple). Column names containing ground truth labels.</small>
+                    <div id="selectedTargetColumnsInfo" class="mt-2 mb-2"></div>
+                    <div id="targetColumnsError" class="text-danger mt-1" style="display: none;"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_column_select" class="form-label">ID Column <span class="text-danger">*</span></label>
+                    <select class="form-select" id="id_column_select" name="id_column_select" required>
+                        <option value="">Select ID column...</option>
+                    </select>
+                    <small class="form-text text-muted">Column name containing row IDs (required)</small>
+                    <div id="idColumnError" class="text-danger mt-1" style="display: none;"></div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Step 4: Split Dataset -->
+    <div class="card mt-4" id="splitDatasetSection" style="display: none;">
+        <div class="card-header bg-success text-white">
+            <h5><i class="fas fa-cut"></i> Step 4: Split Dataset</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-success">
+                <i class="fas fa-info-circle"></i> Configure the split ratio and split the dataset into training and test sets.
+            </div>
+
+            <form id="splitDatasetForm" enctype="multipart/form-data">
+                <input type="hidden" id="split_target_column" name="target_column">
+                <input type="hidden" id="split_id_column" name="id_column">
+                <input type="file" id="split_dataset_file" name="dataset_file" style="display: none;">
+                
+                <div class="mb-3">
+                    <label for="train_ratio" class="form-label">Train/Test Split Ratio</label>
+                    <input type="number" class="form-control" id="train_ratio" name="train_ratio" 
+                           value="{{ competition.train_test_split_ratio or 0.8 }}" 
+                           step="0.1" min="0.1" max="0.9" required>
+                    <small class="form-text text-muted">Ratio for training set (0.1 to 0.9, default 0.8 = 80% train, 20% test)</small>
+                </div>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-cut"></i> Split and Save Dataset
+                </button>
+            </form>
+            <div id="splitDatasetMessage" class="mt-3" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Legacy Task Configuration Section (for updating existing competitions) -->
+    <div class="card mt-4">
+        <div class="card-header bg-secondary text-white">
+            <h5><i class="fas fa-cog"></i> Update Task Configuration</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-secondary">
+                <i class="fas fa-info-circle"></i> Update task configuration for existing competitions. For new datasets, use the workflow above.
+            </div>
+
+            <form id="updateTaskConfigForm">
+                <div class="mb-3">
+                    <label for="task_type_update" class="form-label">Task Type <span class="text-danger">*</span></label>
+                    <select class="form-select" id="task_type_update" name="task_type" required>
+                        <option value="">Select task type...</option>
+                        <optgroup label="Basic Tasks">
+                            <option value="classification" {% if competition.task_type == 'classification' %}selected{% endif %}>Classification</option>
+                            <option value="regression" {% if competition.task_type == 'regression' %}selected{% endif %}>Regression</option>
+                        </optgroup>
+                        <optgroup label="Advanced Tasks">
+                            <option value="multilabel_classification" {% if competition.task_type == 'multilabel_classification' %}selected{% endif %}>Multi-label Classification</option>
+                            <option value="multioutput_regression" {% if competition.task_type == 'multioutput_regression' %}selected{% endif %}>Multi-output Regression</option>
+                            <option value="time_series" {% if competition.task_type == 'time_series' %}selected{% endif %}>Time Series Forecasting</option>
+                            <option value="text_classification" {% if competition.task_type == 'text_classification' %}selected{% endif %}>Text Classification</option>
+                            <option value="object_detection" {% if competition.task_type == 'object_detection' %}selected{% endif %}>Object Detection</option>
+                            <option value="segmentation" {% if competition.task_type == 'segmentation' %}selected{% endif %}>Image Segmentation</option>
+                            <option value="ranking" {% if competition.task_type == 'ranking' %}selected{% endif %}>Ranking / Learning to Rank</option>
+                            <option value="recommendation" {% if competition.task_type == 'recommendation' %}selected{% endif %}>Recommendation</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="mb-3" id="predictionFormatUpdateDiv" style="display: none;">
+                    <label for="prediction_format_update" class="form-label">Prediction Format</label>
+                    <select class="form-select" id="prediction_format_update" name="prediction_format">
+                        <option value="">Auto-detect</option>
+                        <option value="classes">Classes</option>
+                        <option value="probabilities">Probabilities</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-secondary">
+                    <i class="fas fa-save"></i> Update Task Configuration
+                </button>
+            </form>
+            <div id="taskConfigMessage" class="mt-3" style="display: none;"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const competitionId = {{ competition.id }};
+    let uploadedFile = null;
+    let availableColumns = [];
+    
+    // Helper function to determine if task type is multi-target
+    function isMultiTargetTask(taskType) {
+        return taskType === 'multilabel_classification' || taskType === 'multioutput_regression';
+    }
+    
+    // Helper function to populate column dropdowns
+    function populateColumnDropdowns(columns, excludeColumns = []) {
+        const idSelect = document.getElementById('id_column_select');
+        const singleTargetSelect = document.getElementById('target_column_select');
+        const multiTargetSelect = document.getElementById('target_columns_select');
+        
+        // Clear and populate ID dropdown (exclude all target columns)
+        idSelect.innerHTML = '<option value="">Select ID column...</option>';
+        columns.forEach(col => {
+            if (!excludeColumns.includes(col)) {
+                idSelect.add(new Option(col, col));
+            }
+        });
+        
+        // Clear and populate single target dropdown
+        singleTargetSelect.innerHTML = '<option value="">Select target column...</option>';
+        columns.forEach(col => {
+            if (!excludeColumns.includes(col)) {
+                singleTargetSelect.add(new Option(col, col));
+            }
+        });
+        
+        // Clear and populate multi-target dropdown
+        multiTargetSelect.innerHTML = '';
+        columns.forEach(col => {
+            if (!excludeColumns.includes(col)) {
+                multiTargetSelect.add(new Option(col, col));
+            }
+        });
+    }
+    
+    // Update column selection UI based on task type
+    function updateColumnSelectionUI(taskType) {
+        const singleTargetDiv = document.getElementById('singleTargetColumnDiv');
+        const multiTargetDiv = document.getElementById('multiTargetColumnsDiv');
+        const isMultiTarget = isMultiTargetTask(taskType);
+        
+        if (isMultiTarget) {
+            singleTargetDiv.style.display = 'none';
+            multiTargetDiv.style.display = 'block';
+        } else {
+            singleTargetDiv.style.display = 'block';
+            multiTargetDiv.style.display = 'none';
+        }
+        
+        // Update ID dropdown to exclude selected target columns
+        updateIdDropdownExclusions();
+    }
+    
+    // Update ID dropdown to exclude selected target columns
+    function updateIdDropdownExclusions() {
+        const taskType = document.getElementById('task_type').value;
+        const idSelect = document.getElementById('id_column_select');
+        const currentIdValue = idSelect.value;
+        const excludeColumns = [];
+        
+        if (isMultiTargetTask(taskType)) {
+            const multiSelect = document.getElementById('target_columns_select');
+            Array.from(multiSelect.selectedOptions).forEach(option => {
+                excludeColumns.push(option.value);
+            });
+        } else {
+            const singleSelect = document.getElementById('target_column_select');
+            if (singleSelect.value) {
+                excludeColumns.push(singleSelect.value);
+            }
+        }
+        
+        // Rebuild ID dropdown
+        idSelect.innerHTML = '<option value="">Select ID column...</option>';
+        availableColumns.forEach(col => {
+            if (!excludeColumns.includes(col)) {
+                const option = new Option(col, col);
+                if (col === currentIdValue) {
+                    option.selected = true;
+                }
+                idSelect.add(option);
+            }
+        });
+    }
+    
+    // Update selected target columns info display
+    function updateSelectedTargetColumnsInfo() {
+        const multiSelect = document.getElementById('target_columns_select');
+        const infoDiv = document.getElementById('selectedTargetColumnsInfo');
+        const selected = Array.from(multiSelect.selectedOptions).map(opt => opt.value);
+        
+        if (selected.length > 0) {
+            infoDiv.innerHTML = '<strong>Selected (' + selected.length + '):</strong> ' + 
+                selected.map(col => '<span class="badge bg-primary me-1">' + col + '</span>').join('');
+        } else {
+            infoDiv.innerHTML = '';
+        }
+    }
+    
+    // Step 1: Preview Columns
+    document.getElementById('previewColumnsForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const fileInput = document.getElementById('dataset_file');
+        const messageDiv = document.getElementById('previewMessage');
+        
+        if (!fileInput.files || !fileInput.files[0]) {
+            messageDiv.className = 'alert alert-danger';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please select a file';
+            messageDiv.style.display = 'block';
+            return;
+        }
+        
+        uploadedFile = fileInput.files[0];
+        messageDiv.style.display = 'none';
+        
+        try {
+            const formData = new FormData();
+            formData.append('dataset_file', uploadedFile);
+            
+            const response = await fetch(`/admin/competitions/${competitionId}/preview-dataset-columns`, {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success && result.columns) {
+                availableColumns = result.columns;
+                
+                // Show available columns
+                const columnsListDiv = document.getElementById('availableColumnsList');
+                columnsListDiv.innerHTML = '<strong>Detected Columns (' + result.count + '):</strong><br>' + 
+                    result.columns.map(col => `<span class="badge bg-secondary me-1">${col}</span>`).join('');
+                
+                // Populate dropdowns (no exclusions initially)
+                populateColumnDropdowns(result.columns);
+                
+                // Set existing values if available
+                {% if competition.target_column %}
+                if (result.columns.includes('{{ competition.target_column }}')) {
+                    document.getElementById('target_column_select').value = '{{ competition.target_column }}';
+                }
+                {% endif %}
+                {% if competition.id_column %}
+                if (result.columns.includes('{{ competition.id_column }}')) {
+                    document.getElementById('id_column_select').value = '{{ competition.id_column }}';
+                }
+                {% endif %}
+                
+                // Show Step 2 (Task Type) instead of column selection
+                document.getElementById('taskTypeSection').style.display = 'block';
+                messageDiv.className = 'alert alert-success';
+                messageDiv.innerHTML = '<i class="fas fa-check-circle"></i> Successfully detected ' + result.count + ' columns. Please select task type.';
+                messageDiv.style.display = 'block';
+                
+                // Scroll to task type section
+                document.getElementById('taskTypeSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                throw new Error(result.message || 'Failed to preview columns');
+            }
+        } catch (error) {
+            messageDiv.className = 'alert alert-danger';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error: ' + error.message;
+            messageDiv.style.display = 'block';
+        }
+    });
+    
+    // Step 2: Task Type Selection - Show column selection when task type is selected
+    const taskTypeSelect = document.getElementById('task_type');
+    const predictionFormatDiv = document.getElementById('predictionFormatDiv');
+    
+    if (taskTypeSelect) {
+        taskTypeSelect.addEventListener('change', function() {
+            const taskType = this.value;
+            
+            // Show/hide prediction format (only for classification types)
+            if (predictionFormatDiv) {
+                if (taskType === 'classification' || taskType === 'multilabel_classification' || taskType === 'text_classification') {
+                    predictionFormatDiv.style.display = 'block';
+                } else {
+                    predictionFormatDiv.style.display = 'none';
+                }
+            }
+            
+            // Show column selection section and update UI based on task type
+            if (taskType) {
+                updateColumnSelectionUI(taskType);
+                document.getElementById('columnSelectionSection').style.display = 'block';
+                document.getElementById('columnSelectionSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                document.getElementById('columnSelectionSection').style.display = 'none';
+                document.getElementById('splitDatasetSection').style.display = 'none';
+            }
+        });
+        
+        // Initialize UI if task type is already set
+        if (taskTypeSelect.value) {
+            const event = new Event('change');
+            taskTypeSelect.dispatchEvent(event);
+        }
+    }
+    
+    // Step 3: Column Selection Validation
+    function validateColumnSelection() {
+        const taskType = document.getElementById('task_type').value;
+        const idCol = document.getElementById('id_column_select').value;
+        const isMultiTarget = isMultiTargetTask(taskType);
+        
+        const targetError = document.getElementById('targetColumnError');
+        const targetColumnsError = document.getElementById('targetColumnsError');
+        const idError = document.getElementById('idColumnError');
+        
+        // Clear previous errors
+        targetError.style.display = 'none';
+        targetColumnsError.style.display = 'none';
+        idError.style.display = 'none';
+        
+        let isValid = true;
+        
+        // Validate task type
+        if (!taskType) {
+            isValid = false;
+        }
+        
+        // Validate target column(s)
+        if (isMultiTarget) {
+            const multiSelect = document.getElementById('target_columns_select');
+            const selected = Array.from(multiSelect.selectedOptions).map(opt => opt.value);
+            
+            if (selected.length === 0) {
+                targetColumnsError.textContent = 'At least one target column is required';
+                targetColumnsError.style.display = 'block';
+                isValid = false;
+            } else {
+                // Check for duplicates (shouldn't happen but verify)
+                const unique = [...new Set(selected)];
+                if (unique.length !== selected.length) {
+                    targetColumnsError.textContent = 'Duplicate target columns are not allowed';
+                    targetColumnsError.style.display = 'block';
+                    isValid = false;
+                }
+                
+                // Check if ID column is in target columns
+                if (idCol && selected.includes(idCol)) {
+                    targetColumnsError.textContent = 'ID column cannot be selected as a target column';
+                    targetColumnsError.style.display = 'block';
+                    isValid = false;
+                }
+            }
+        } else {
+            const targetCol = document.getElementById('target_column_select').value;
+            if (!targetCol) {
+                targetError.textContent = 'Target column is required';
+                targetError.style.display = 'block';
+                isValid = false;
+            } else if (targetCol === idCol) {
+                targetError.textContent = 'Target column cannot be the same as ID column';
+                targetError.style.display = 'block';
+                isValid = false;
+            }
+        }
+        
+        // Validate ID column
+        if (!idCol) {
+            idError.textContent = 'ID column is required';
+            idError.style.display = 'block';
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+    
+    // Single target column change handler
+    document.getElementById('target_column_select').addEventListener('change', function() {
+        updateIdDropdownExclusions();
+        if (validateColumnSelection()) {
+            document.getElementById('splitDatasetSection').style.display = 'block';
+        } else {
+            document.getElementById('splitDatasetSection').style.display = 'none';
+        }
+    });
+    
+    // Multi-target columns change handler
+    document.getElementById('target_columns_select').addEventListener('change', function() {
+        updateSelectedTargetColumnsInfo();
+        updateIdDropdownExclusions();
+        if (validateColumnSelection()) {
+            document.getElementById('splitDatasetSection').style.display = 'block';
+        } else {
+            document.getElementById('splitDatasetSection').style.display = 'none';
+        }
+    });
+    
+    // ID column change handler
+    document.getElementById('id_column_select').addEventListener('change', function() {
+        const taskType = document.getElementById('task_type').value;
+        const isMultiTarget = isMultiTargetTask(taskType);
+        
+        if (isMultiTarget) {
+            // Remove ID column from multi-select options
+            const multiSelect = document.getElementById('target_columns_select');
+            const idCol = this.value;
+            Array.from(multiSelect.options).forEach(option => {
+                if (option.value === idCol) {
+                    option.disabled = true;
+                    if (Array.from(multiSelect.selectedOptions).includes(option)) {
+                        option.selected = false;
+                        updateSelectedTargetColumnsInfo();
+                    }
+                } else {
+                    option.disabled = false;
+                }
+            });
+        } else {
+            // Remove ID column from single target options
+            const singleSelect = document.getElementById('target_column_select');
+            const idCol = this.value;
+            Array.from(singleSelect.options).forEach(option => {
+                if (option.value === idCol) {
+                    option.disabled = true;
+                    if (singleSelect.value === idCol) {
+                        singleSelect.value = '';
+                    }
+                } else {
+                    option.disabled = false;
+                }
+            });
+        }
+        
+        if (validateColumnSelection()) {
+            document.getElementById('splitDatasetSection').style.display = 'block';
+        } else {
+            document.getElementById('splitDatasetSection').style.display = 'none';
+        }
+    });
+    
+    // Step 4: Split Dataset
+    document.getElementById('splitDatasetForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!validateColumnSelection()) {
+            return;
+        }
+        
+        const taskType = document.getElementById('task_type').value;
+        const idCol = document.getElementById('id_column_select').value;
+        const trainRatio = document.getElementById('train_ratio').value;
+        const isMultiTarget = isMultiTargetTask(taskType);
+        const messageDiv = document.getElementById('splitDatasetMessage');
+        
+        if (!uploadedFile) {
+            messageDiv.className = 'alert alert-danger';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please upload a file first';
+            messageDiv.style.display = 'block';
+            return;
+        }
+        
+        messageDiv.style.display = 'none';
+        
+        try {
+            const formData = new FormData();
+            formData.append('dataset_file', uploadedFile);
+            formData.append('task_type', taskType);
+            formData.append('id_column', idCol);
+            formData.append('train_ratio', trainRatio);
+            
+            // Add target column(s) based on task type
+            if (isMultiTarget) {
+                const multiSelect = document.getElementById('target_columns_select');
+                const selectedColumns = Array.from(multiSelect.selectedOptions).map(opt => opt.value);
+                formData.append('target_columns', selectedColumns.join(','));
+            } else {
+                const targetCol = document.getElementById('target_column_select').value;
+                formData.append('target_column', targetCol);
+            }
+            
+            const response = await fetch(`/admin/competitions/${competitionId}/upload-dataset`, {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                messageDiv.className = 'alert alert-success';
+                messageDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + (result.message || 'Dataset uploaded and split successfully');
+                messageDiv.style.display = 'block';
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                throw new Error(result.message || 'Failed to upload dataset');
+            }
+        } catch (error) {
+            messageDiv.className = 'alert alert-danger';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error: ' + error.message;
+            messageDiv.style.display = 'block';
+        }
+    });
+    
+    // Legacy task configuration update
+    const updateTaskConfigForm = document.getElementById('updateTaskConfigForm');
+    if (updateTaskConfigForm) {
+        // Task type change handler for legacy form
+        const taskTypeSelectUpdate = document.getElementById('task_type_update');
+        const predictionFormatUpdateDiv = document.getElementById('predictionFormatUpdateDiv');
+        
+        function updateUIForTaskTypeLegacy() {
+            const taskType = taskTypeSelectUpdate.value;
+            
+            // Show/hide prediction format (only for classification types)
+            if (taskType === 'classification' || taskType === 'multilabel_classification' || taskType === 'text_classification') {
+                predictionFormatUpdateDiv.style.display = 'block';
+            } else {
+                predictionFormatUpdateDiv.style.display = 'none';
+            }
+        }
+        
+        if (taskTypeSelectUpdate) {
+            taskTypeSelectUpdate.addEventListener('change', updateUIForTaskTypeLegacy);
+            updateUIForTaskTypeLegacy(); // Initialize UI
+        }
+        
+        // Set selected prediction format
+        const currentPredFormat = '{{ competition.prediction_format or "" }}';
+        const predFormatUpdate = document.getElementById('prediction_format_update');
+        if (currentPredFormat && predFormatUpdate) {
+            predFormatUpdate.value = currentPredFormat;
+        }
+        
+        // Update task configuration
+        updateTaskConfigForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const taskType = taskTypeSelectUpdate.value;
+            const predictionFormat = predFormatUpdate ? predFormatUpdate.value : null;
+            
+            const data = {
+                task_type: taskType,
+                prediction_format: predictionFormat || null
+            };
+            
+            const messageDiv = document.getElementById('taskConfigMessage');
+            messageDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch(`/admin/competitions/${competitionId}/update-task-config`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data),
+                    credentials: 'include'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    messageDiv.className = 'alert alert-success';
+                    messageDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + result.message;
+                    messageDiv.style.display = 'block';
+                } else {
+                    messageDiv.className = 'alert alert-danger';
+                    messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (result.message || 'Update failed');
+                    messageDiv.style.display = 'block';
+                }
+            } catch (error) {
+                messageDiv.className = 'alert alert-danger';
+                messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error: ' + error.message;
+                messageDiv.style.display = 'block';
+            }
+        });
+    }
+    
+    // Task type change handler for Step 3 (new workflow)
+    const taskTypeSelect = document.getElementById('task_type');
+    const predictionFormatDiv = document.getElementById('predictionFormatDiv');
+    
+    if (taskTypeSelect) {
+        function updateUIForTaskTypeNew() {
+            const taskType = taskTypeSelect.value;
+            
+            // Show/hide prediction format (only for classification types)
+            if (predictionFormatDiv) {
+                if (taskType === 'classification' || taskType === 'multilabel_classification' || taskType === 'text_classification') {
+                    predictionFormatDiv.style.display = 'block';
+                } else {
+                    predictionFormatDiv.style.display = 'none';
+                }
+            }
+        }
+        
+        taskTypeSelect.addEventListener('change', updateUIForTaskTypeNew);
+        updateUIForTaskTypeNew(); // Initialize UI
+    }
+});
+</script>
+{% endblock %}

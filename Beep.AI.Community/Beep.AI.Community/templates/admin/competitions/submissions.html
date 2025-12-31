@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Competition Submissions{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="fas fa-upload text-primary"></i> Submissions: {{ competition.title }}
+            </h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('admin.competitions_detail', competition_id=competition.id) }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Competition
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>All Submissions</h5>
+        </div>
+        <div class="card-body">
+            {% if submissions %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Score</th>
+                            <th>Rank</th>
+                            <th>Status</th>
+                            <th>Model ID</th>
+                            <th>Submitted</th>
+                            <th>Evaluated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for submission in submissions %}
+                        <tr>
+                            <td>{{ submission.id }}</td>
+                            <td>{{ submission.user.username if submission.user else 'Unknown' }}</td>
+                            <td>
+                                {% if submission.score is not none %}
+                                    {{ "%.4f"|format(submission.score) }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ submission.rank if submission.rank else '-' }}</td>
+                            <td>
+                                {% if submission.status == 'evaluated' %}
+                                    <span class="badge bg-success">Evaluated</span>
+                                {% elif submission.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ submission.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if submission.model_id %}
+                                    <a href="#" title="Model ID: {{ submission.model_id }}">{{ submission.model_id }}</a>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ submission.submitted_at.strftime('%Y-%m-%d %H:%M') if submission.submitted_at else 'N/A' }}</td>
+                            <td>{{ submission.evaluated_at.strftime('%Y-%m-%d %H:%M') if submission.evaluated_at else '-' }}</td>
+                            <td>
+                                {% if submission.status != 'evaluated' %}
+                                <button class="btn btn-sm btn-primary evaluate-btn" 
+                                        data-submission-id="{{ submission.id }}"
+                                        title="Evaluate">
+                                    <i class="fas fa-check"></i> Evaluate
+                                </button>
+                                {% else %}
+                                <button class="btn btn-sm btn-secondary update-score-btn" 
+                                        data-submission-id="{{ submission.id }}"
+                                        title="Update Score">
+                                    <i class="fas fa-edit"></i> Update
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No submissions found for this competition.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Evaluate submission
+document.querySelectorAll('.evaluate-btn, .update-score-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const submissionId = this.dataset.submissionId;
+        const isUpdate = this.classList.contains('update-score-btn');
+        const promptText = isUpdate ? 'Enter new score:' : 'Enter score for this submission:';
+        
+        const score = prompt(promptText);
+        if (score !== null && score !== '') {
+            const scoreValue = parseFloat(score);
+            if (isNaN(scoreValue)) {
+                alert('Please enter a valid number');
+                return;
+            }
+            
+            fetch(`{{ url_for('admin.competitions_evaluate_submission', competition_id=competition.id, submission_id=0) }}`.replace('0', submissionId), {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
+                body: JSON.stringify({score: scoreValue})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to evaluate submission'));
+                }
+            })
+            .catch(err => alert('Error: ' + err.message));
+        }
+    });
+});
+</script>
+{% endblock %}

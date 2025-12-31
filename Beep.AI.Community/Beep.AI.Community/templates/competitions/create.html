@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Create Competition - {{ branding.app_name if branding else 'Beep.AI.Community' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="bi bi-plus-circle text-primary me-2"></i>Create Competition</h1>
+        <p class="text-muted">Create a new challenge for the community</p>
+    </div>
+</div>
+
+<div class="card-modern">
+    <div class="card-modern-header">
+        <h5 class="card-modern-title"><i class="bi bi-trophy me-2"></i>Competition Details</h5>
+    </div>
+    <div class="card-modern-body">
+        <form method="POST" action="{{ url_for('competitions.create') }}" class="form-modern">
+            <div class="mb-3">
+                <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
+                <small class="text-muted">Provide a detailed description of the competition, objectives, and rules.</small>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="dataset_id" class="form-label">Dataset</label>
+                    <select class="form-select" id="dataset_id" name="dataset_id">
+                        <option value="0">None - No dataset required</option>
+                        {% for dataset in datasets %}
+                        <option value="{{ dataset.id }}">{{ dataset.title }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Select a dataset to associate with this competition (optional)</small>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="evaluation_metric" class="form-label">Evaluation Metric</label>
+                    <input type="text" class="form-control" id="evaluation_metric" name="evaluation_metric" placeholder="e.g., Accuracy, F1-Score, RMSE">
+                    <small class="text-muted">The metric used to evaluate submissions</small>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="datetime-local" class="form-control" id="start_date" name="start_date">
+                    <small class="text-muted">Leave empty to start immediately</small>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="end_date" class="form-label">End Date <span class="text-danger">*</span></label>
+                    <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="max_submissions_per_day" class="form-label">Max Submissions per Day</label>
+                    <input type="number" class="form-control" id="max_submissions_per_day" name="max_submissions_per_day" value="5" min="1">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="max_total_submissions" class="form-label">Max Total Submissions</label>
+                    <input type="number" class="form-control" id="max_total_submissions" name="max_total_submissions" value="100" min="1">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="leaderboard_type" class="form-label">Leaderboard Type</label>
+                <select class="form-select" id="leaderboard_type" name="leaderboard_type">
+                    <option value="public" selected>Public - Everyone can see the leaderboard</option>
+                    <option value="private">Private - Only participants can see the leaderboard</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="prize_description" class="form-label">Prize Description</label>
+                <textarea class="form-control" id="prize_description" name="prize_description" rows="3"></textarea>
+                <small class="text-muted">Describe the prizes or rewards for winners (optional)</small>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('competitions.browse') }}" class="btn btn-modern btn-modern-secondary">
+                    <i class="bi bi-x me-1"></i>Cancel
+                </a>
+                <button type="submit" class="btn btn-modern btn-modern-primary">
+                    <i class="bi bi-check me-1"></i>Create Competition
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

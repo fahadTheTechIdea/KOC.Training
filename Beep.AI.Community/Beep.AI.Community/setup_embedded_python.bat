@@ -1,0 +1,116 @@
+@echo off
+REM ============================================
+REM Beep.AI.Community - Embedded Python Setup
+REM ============================================
+
+echo ============================================
+echo Beep.AI.Community Embedded Python Setup
+echo ============================================
+echo.
+
+REM Check if embedded Python already exists
+if exist "python-embedded\python.exe" (
+    echo Embedded Python already installed.
+    echo Location: python-embedded\
+    echo.
+    choice /C YN /M "Do you want to re-download and reinstall"
+    if errorlevel 2 goto :skip_download
+    if errorlevel 1 goto :download
+) else (
+    goto :download
+)
+
+:download
+echo.
+echo Downloading Python 3.11.7 Embedded (64-bit)...
+echo This will download approximately 10MB...
+echo.
+
+REM Create directory
+if not exist "python-embedded" mkdir python-embedded
+
+REM Download embedded Python using PowerShell
+powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.11.7/python-3.11.7-embed-amd64.zip' -OutFile 'python-embedded.zip'"
+
+if %errorlevel% neq 0 (
+    echo.
+    echo ERROR: Failed to download Python!
+    echo Please check your internet connection.
+    pause
+    exit /b 1
+)
+
+echo.
+echo Extracting Python...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Expand-Archive -Path 'python-embedded.zip' -DestinationPath 'python-embedded' -Force"
+
+REM Clean up zip file
+del python-embedded.zip
+
+echo.
+echo Configuring embedded Python...
+
+REM Enable site-packages by uncommenting import site in python311._pth (CRITICAL for venv module)
+powershell -NoProfile -ExecutionPolicy Bypass -Command "(Get-Content 'python-embedded\python311._pth') -replace '#import site', 'import site' | Set-Content 'python-embedded\python311._pth'"
+
+REM Download get-pip.py
+echo Downloading pip installer...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -Uri 'https://bootstrap.pypa.io/get-pip.py' -OutFile 'python-embedded\get-pip.py'"
+
+REM Install pip
+echo Installing pip...
+python-embedded\python.exe python-embedded\get-pip.py
+if errorlevel 1 (
+    echo [ERROR] Failed to install pip!
+    pause
+    exit /b 1
+)
+
+REM Clean up get-pip.py
+del python-embedded\get-pip.py
+
+echo.
+echo Installing application dependencies...
+python-embedded\python.exe -m pip install --upgrade pip --quiet --no-warn-script-location
+if errorlevel 1 (
+    echo [ERROR] Failed to upgrade pip!
+    pause
+    exit /b 1
+)
+
+REM Install virtualenv package by default (for reliable venv creation)
+python-embedded\python.exe -m pip install virtualenv --quiet --no-warn-script-location
+
+python-embedded\python.exe -m pip install -r requirements.txt --quiet --no-warn-script-location
+if errorlevel 1 (
+    echo [ERROR] Failed to install required packages!
+    echo Please check your internet connection and requirements.txt file.
+    pause
+    exit /b 1
+)
+
+REM Create protection marker file
+echo CRITICAL_SYSTEM_COMPONENT > python-embedded\.community_protected
+echo This directory contains the embedded Python runtime required for Beep.AI.Community to function. >> python-embedded\.community_protected
+echo DO NOT DELETE this directory unless you are uninstalling the application. >> python-embedded\.community_protected
+echo Deletion will prevent the application from starting. >> python-embedded\.community_protected
+
+echo.
+echo ============================================
+echo Setup Complete!
+echo ============================================
+echo.
+echo Embedded Python installed to: python-embedded\
+echo Python version: 3.11.7
+echo.
+echo You can now run Beep.AI.Community using run.bat or python run_community.py
+echo.
+goto :end
+
+:skip_download
+echo.
+echo Skipping download. Using existing embedded Python.
+echo.
+
+:end
+pause

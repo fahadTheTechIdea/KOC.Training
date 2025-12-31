@@ -1,0 +1,947 @@
+{% extends "base.html" %}
+
+{% block title %}{{ branding.app_name if branding else 'Beep.AI.Community' }} - Welcome{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Landing Page Professional Styles */
+    .landing-hero {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: var(--text-on-primary-color);
+        padding: 8rem 0 6rem;
+        position: relative;
+        overflow: hidden;
+        min-height: 90vh;
+        display: flex;
+        align-items: center;
+    }
+    
+    .landing-hero::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -10%;
+        width: 800px;
+        height: 800px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: float 20s ease-in-out infinite;
+    }
+    
+    .landing-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -20%;
+        left: -5%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: float 15s ease-in-out infinite reverse;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        50% { transform: translate(30px, -30px) scale(1.1); }
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero-title {
+        font-size: 4rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        line-height: 1.2;
+        animation: fadeInUp 0.8s ease-out;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.5rem;
+        margin-bottom: 2.5rem;
+        opacity: 0.95;
+        font-weight: 300;
+        animation: fadeInUp 1s ease-out;
+    }
+    
+    .hero-cta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        animation: fadeInUp 1.2s ease-out;
+    }
+    
+    .hero-icon-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-top: 3rem;
+        animation: fadeIn 1.5s ease-out;
+    }
+    
+    .hero-icon-item {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--border-radius-lg);
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .hero-icon-item:hover {
+        transform: translateY(-5px) scale(1.05);
+        background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .hero-icon-item img {
+        width: 48px;
+        height: 48px;
+        filter: brightness(0) invert(1);
+        margin-bottom: 0.5rem;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .department-section {
+        padding: 6rem 0;
+        background: var(--background-color);
+        position: relative;
+    }
+    
+    .section-header {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+    
+    .section-header h2 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: var(--text-primary-color);
+    }
+    
+    .section-header p {
+        font-size: 1.25rem;
+        color: var(--text-secondary-color);
+    }
+    
+    .department-card {
+        background: var(--surface-elevated-color);
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: 2.5rem;
+        height: 100%;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: var(--shadow-sm);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .department-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+    }
+    
+    .department-card:hover::before {
+        left: 100%;
+    }
+    
+    .department-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--primary-color);
+    }
+    
+    .department-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 1.5rem;
+        border-radius: var(--border-radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--primary-transparent-color), var(--secondary-color));
+        border: 3px solid var(--border-color);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .department-card:hover .department-icon {
+        transform: rotate(5deg) scale(1.1);
+        border-color: var(--primary-color);
+    }
+    
+    .department-icon img {
+        max-width: 80px;
+        max-height: 80px;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+    
+    .department-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-primary-color);
+    }
+    
+    .department-description {
+        color: var(--text-secondary-color);
+        line-height: 1.7;
+        font-size: 1rem;
+    }
+    
+    .feature-section {
+        padding: 6rem 0;
+        background: var(--surface-color);
+    }
+    
+    .feature-card {
+        background: var(--surface-elevated-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: 2.5rem;
+        height: 100%;
+        transition: all 0.4s ease;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .feature-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.4s ease;
+    }
+    
+    .feature-card:hover::after {
+        transform: scaleX(1);
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--primary-color);
+    }
+    
+    .feature-icon {
+        width: 90px;
+        height: 90px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: var(--border-radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .feature-card:hover .feature-icon {
+        transform: rotate(-5deg) scale(1.1);
+    }
+    
+    .feature-icon img {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+    }
+    
+    .feature-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-primary-color);
+    }
+    
+    .feature-description {
+        color: var(--text-secondary-color);
+        line-height: 1.7;
+    }
+    
+    .competition-showcase {
+        background: linear-gradient(135deg, var(--surface-elevated-color) 0%, var(--surface-color) 100%);
+        padding: 6rem 0;
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        position: relative;
+    }
+    
+    .competition-card {
+        background: var(--surface-elevated-color);
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        padding: 2.5rem;
+        height: 100%;
+        transition: all 0.4s ease;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .competition-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, var(--success-color) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+    
+    .competition-card:hover::before {
+        opacity: 0.1;
+    }
+    
+    .competition-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--success-color);
+    }
+    
+    .competition-icon {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 1.5rem;
+        object-fit: contain;
+        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+        transition: all 0.3s ease;
+    }
+    
+    .competition-card:hover .competition-icon {
+        transform: scale(1.15) rotate(5deg);
+    }
+    
+    .cta-section {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        padding: 6rem 0;
+        text-align: center;
+        color: var(--text-on-primary-color);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        opacity: 0.3;
+    }
+    
+    .cta-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .cta-description {
+        font-size: 1.3rem;
+        margin-bottom: 2.5rem;
+        opacity: 0.95;
+        position: relative;
+        z-index: 1;
+    }
+    
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+        }
+        
+        .section-header h2 {
+            font-size: 2rem;
+        }
+        
+        .department-section,
+        .feature-section,
+        .competition-showcase {
+            padding: 4rem 0;
+        }
+        
+        .hero-icon-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    .rank-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-weight: 700;
+        color: white;
+    }
+    
+    .rank-badge.rank-1 {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+    }
+    
+    .rank-badge.rank-2 {
+        background: linear-gradient(135deg, #C0C0C0, #808080);
+    }
+    
+    .rank-badge.rank-3 {
+        background: linear-gradient(135deg, #CD7F32, #8B4513);
+    }
+    
+    .rank-badge.rank-other {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="landing-hero">
+    <div class="container">
+        <div class="hero-content">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <h1 class="hero-title">
+                        {% if branding and branding.logo_url %}
+                        <img src="{{ branding.logo_url }}" alt="{{ branding.app_name }}" height="60" class="me-3 mb-2" style="filter: brightness(0) invert(1);">
+                        {% endif %}
+                        {% if branding and branding.app_name %}
+                            {{ branding.app_name|replace('ML Community', 'A.I. (Machine Learning) Community')|replace('ML', 'A.I. (Machine Learning)') }}
+                        {% else %}
+                            A.I. (Machine Learning) Community
+                        {% endif %}
+                    </h1>
+                    <p class="hero-subtitle">
+                        {% if branding and branding.tagline %}
+                            {{ branding.tagline }}
+                        {% else %}
+                            Empowering KOC employees to develop their machine learning skills through hands-on competitions, collaborative projects, and knowledge sharing. Join challenges, build models, and advance your AI expertise.
+                        {% endif %}
+                    </p>
+                    <div class="hero-cta">
+                        {% if current_user %}
+                        <a href="{{ url_for('main.index') }}" class="btn btn-light btn-lg px-4 py-3">
+                            <i class="fas fa-home me-2"></i> Go to Dashboard
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('main.login_page') }}" class="btn btn-light btn-lg px-4 py-3">
+                            <i class="fas fa-sign-in-alt me-2"></i> Get Started
+                        </a>
+                        <a href="#features" class="btn btn-outline-light btn-lg px-4 py-3">
+                            <i class="fas fa-info-circle me-2"></i> Learn More
+                        </a>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Icon Grid -->
+                    <div class="hero-icon-grid">
+                        <div class="hero-icon-item">
+                            <img src="{{ url_for('static', filename='assets/icons/oil_gas/057-oil-platform.png') }}" alt="Oil & Gas" onerror="this.style.display='none';">
+                            <small>Oil & Gas</small>
+                        </div>
+                        <div class="hero-icon-item">
+                            <img src="{{ url_for('static', filename='assets/icons/ai-ml/001-AI.png') }}" alt="AI/ML" onerror="this.style.display='none';">
+                            <small>AI/ML</small>
+                        </div>
+                        <div class="hero-icon-item">
+                            <img src="{{ url_for('static', filename='assets/icons/healthcare/010-stethoscope.png') }}" alt="Medical" onerror="this.style.display='none';">
+                            <small>Medical</small>
+                        </div>
+                        <div class="hero-icon-item">
+                            <img src="{{ url_for('static', filename='assets/icons/energy/005-battery.png') }}" alt="Energy" onerror="this.style.display='none';">
+                            <small>Energy</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5 text-center mt-5 mt-lg-0">
+                    {% if branding and branding.logo_url %}
+                    <img src="{{ branding.logo_url }}" 
+                         alt="{{ branding.app_name }}" 
+                         class="img-fluid"
+                         style="max-width: 500px; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.3));">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='assets/icons/ai-ml/022-brain.png') }}" 
+                         alt="AI Community" 
+                         class="img-fluid"
+                         style="max-width: 400px; opacity: 0.8;">
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Leaderboard Showcase -->
+<section class="leaderboard-showcase" style="background: var(--surface-color); padding: 6rem 0;">
+    <div class="container">
+        <div class="section-header">
+            <h2>Top Performers & Recent Winners</h2>
+            <p>See who's leading the way and get inspired to compete</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Top Performers -->
+            <div class="col-md-6">
+                <div class="card-modern" style="height: 100%;">
+                    <div class="card-modern-header">
+                        <h5 class="card-modern-title">
+                            <img src="{{ url_for('static', filename='assets/images/features/competitions/035-crown.png') }}" 
+                                 alt="Crown" 
+                                 style="width: 32px; height: 32px; margin-right: 0.75rem;"
+                                 onerror="this.style.display='none';">
+                            Top Performers
+                        </h5>
+                        <a href="{{ url_for('leaderboards.index') }}" class="btn btn-modern btn-modern-secondary btn-sm">
+                            View All
+                        </a>
+                    </div>
+                    <div class="card-modern-body">
+                        {% if top_performers and top_performers|length > 0 %}
+                        <ul class="list-group-modern">
+                            {% for performer in top_performers[:5] %}
+                            <li class="list-group-item-modern">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rank-badge {% if performer.rank == 1 %}rank-1{% elif performer.rank == 2 %}rank-2{% elif performer.rank == 3 %}rank-3{% else %}rank-other{% endif %}" style="width: 40px; height: 40px; font-size: 0.875rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem;">
+                                        {% if performer.rank == 1 %}
+                                        <img src="{{ url_for('static', filename='assets/images/features/competitions/035-crown.png') }}" 
+                                             alt="Crown" 
+                                             style="width: 18px; height: 18px; filter: brightness(0) invert(1);"
+                                             onerror="this.style.display='none';">
+                                        {% elif performer.rank == 2 %}
+                                        <img src="{{ url_for('static', filename='assets/images/features/competitions/009-second-prize.png') }}" 
+                                             alt="Second" 
+                                             style="width: 18px; height: 18px; filter: brightness(0) invert(1);"
+                                             onerror="this.style.display='none';">
+                                        {% elif performer.rank == 3 %}
+                                        <img src="{{ url_for('static', filename='assets/images/features/competitions/042-third-1.png') }}" 
+                                             alt="Third" 
+                                             style="width: 18px; height: 18px; filter: brightness(0) invert(1);"
+                                             onerror="this.style.display='none';">
+                                        {% else %}
+                                        <img src="{{ url_for('static', filename='assets/images/features/competitions/018-star-4.png') }}" 
+                                             alt="Star" 
+                                             style="width: 18px; height: 18px; filter: brightness(0) invert(1); opacity: 0.7;"
+                                             onerror="this.style.display='none';">
+                                        {% endif %}
+                                        #{{ performer.rank }}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div style="font-weight: 600; color: var(--text-primary-color); display: flex; align-items: center; gap: 0.5rem;">
+                                            {% if performer.rank <= 3 %}
+                                            <img src="{{ url_for('static', filename='assets/images/features/competitions/018-star-4.png') }}" 
+                                                 alt="Star" 
+                                                 style="width: 16px; height: 16px;"
+                                                 onerror="this.style.display='none';">
+                                            {% endif %}
+                                            {{ performer.display_name or performer.username }}
+                                        </div>
+                                        <div style="font-size: 0.875rem; color: var(--text-secondary-color); display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                            <span>
+                                                <img src="{{ url_for('static', filename='assets/images/features/competitions/003-trophy-6.png') }}" 
+                                                     alt="Points" 
+                                                     style="width: 14px; height: 14px; vertical-align: middle; margin-right: 0.25rem;"
+                                                     onerror="this.style.display='none';">
+                                                {{ performer.total_points }} points
+                                            </span>
+                                            <span>•</span>
+                                            <span>
+                                                <img src="{{ url_for('static', filename='assets/images/features/competitions/022-medal.png') }}" 
+                                                     alt="Wins" 
+                                                     style="width: 14px; height: 14px; vertical-align: middle; margin-right: 0.25rem;"
+                                                     onerror="this.style.display='none';">
+                                                {{ performer.wins }} wins
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <img src="{{ url_for('static', filename='assets/images/features/competitions/049-trophy.png') }}" 
+                                 alt="No data" 
+                                 style="width: 80px; opacity: 0.3; margin-bottom: 1rem;"
+                                 onerror="this.style.display='none';">
+                            <p class="text-muted">No leaderboard data yet. Be the first to compete!</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Winners -->
+            <div class="col-md-6">
+                <div class="card-modern" style="height: 100%;">
+                    <div class="card-modern-header">
+                        <h5 class="card-modern-title">
+                            <img src="{{ url_for('static', filename='assets/images/features/competitions/022-medal.png') }}" 
+                                 alt="Medal" 
+                                 style="width: 32px; height: 32px; margin-right: 0.75rem;"
+                                 onerror="this.style.display='none';">
+                            Recent Winners
+                        </h5>
+                    </div>
+                    <div class="card-modern-body">
+                        {% if recent_winners and recent_winners|length > 0 %}
+                        <ul class="list-group-modern">
+                            {% for winner in recent_winners[:5] %}
+                            <li class="list-group-item-modern">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rank-badge rank-1" style="width: 40px; height: 40px; font-size: 0.875rem; display: flex; align-items: center; justify-content: center;">
+                                        <img src="{{ url_for('static', filename='assets/images/features/competitions/048-winner.png') }}" 
+                                             alt="Winner" 
+                                             style="width: 24px; height: 24px; filter: brightness(0) invert(1);"
+                                             onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-trophy\' style=\'color: white;\'></i>';">
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div style="font-weight: 600; color: var(--text-primary-color); display: flex; align-items: center; gap: 0.5rem;">
+                                            <img src="{{ url_for('static', filename='assets/images/features/competitions/025-victory.png') }}" 
+                                                 alt="Victory" 
+                                                 style="width: 18px; height: 18px;"
+                                                 onerror="this.style.display='none';">
+                                            {{ winner.display_name or winner.username }}
+                                        </div>
+                                        <div style="font-size: 0.875rem; color: var(--text-secondary-color); display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                            <span>
+                                                <img src="{{ url_for('static', filename='assets/images/features/competitions/003-trophy-6.png') }}" 
+                                                     alt="Competition" 
+                                                     style="width: 14px; height: 14px; vertical-align: middle; margin-right: 0.25rem;"
+                                                     onerror="this.style.display='none';">
+                                                {{ winner.competition_title }}
+                                            </span>
+                                            <span>•</span>
+                                            <span>
+                                                <img src="{{ url_for('static', filename='assets/images/features/competitions/022-medal.png') }}" 
+                                                     alt="Score" 
+                                                     style="width: 14px; height: 14px; vertical-align: middle; margin-right: 0.25rem;"
+                                                     onerror="this.style.display='none';">
+                                                Score: {{ winner.score }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <img src="{{ url_for('static', filename='assets/images/features/competitions/022-medal.png') }}" 
+                                 alt="No winners" 
+                                 style="width: 80px; opacity: 0.3; margin-bottom: 1rem;"
+                                 onerror="this.style.display='none';">
+                            <p class="text-muted">No recent winners yet. Join a competition to become the first winner!</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('leaderboards.index') }}" class="btn btn-modern btn-modern-primary btn-lg">
+                <img src="{{ url_for('static', filename='assets/images/features/competitions/022-medal.png') }}" 
+                     alt="Medal" 
+                     style="width: 24px; height: 24px; margin-right: 0.5rem; vertical-align: middle;"
+                     onerror="this.style.display='none';">
+                View Full Leaderboards
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Departments Section -->
+<section class="department-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Multi-Department Support</h2>
+            <p>Join challenges tailored to your department</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="department-card">
+                    <div class="department-icon">
+                        <img src="{{ url_for('static', filename='assets/icons/oil_gas/057-oil-platform.png') }}" 
+                             alt="Oil & Gas" 
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-oil-can\' style=\'font-size: 3rem; color: var(--primary-color);\'></i>';">
+                    </div>
+                    <h3 class="department-title">Oil & Gas</h3>
+                    <p class="department-description">
+                        Challenges and datasets for petroleum engineering, production optimization, and reservoir analysis.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="department-card">
+                    <div class="department-icon">
+                        <img src="{{ url_for('static', filename='assets/icons/healthcare/010-stethoscope.png') }}" 
+                             alt="Health & Medical" 
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-heartbeat\' style=\'font-size: 3rem; color: var(--primary-color);\'></i>';">
+                    </div>
+                    <h3 class="department-title">Health & Medical</h3>
+                    <p class="department-description">
+                        Medical data analysis, patient care optimization, and healthcare innovation challenges.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="department-card">
+                    <div class="department-icon">
+                        <img src="{{ url_for('static', filename='assets/icons/energy/005-battery.png') }}" 
+                             alt="Energy & Sustainability" 
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-solar-panel\' style=\'font-size: 3rem; color: var(--primary-color);\'></i>';">
+                    </div>
+                    <h3 class="department-title">Energy & Sustainability</h3>
+                    <p class="department-description">
+                        Renewable energy, smart grids, and sustainability optimization challenges.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-6">
+                <div class="department-card">
+                    <div class="department-icon">
+                        <img src="{{ url_for('static', filename='assets/icons/ai-ml/001-AI.png') }}" 
+                             alt="AI & Machine Learning" 
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-brain\' style=\'font-size: 3rem; color: var(--primary-color);\'></i>';">
+                    </div>
+                    <h3 class="department-title">AI & Machine Learning</h3>
+                    <p class="department-description">
+                        Advanced AI/ML challenges, model development, and data science competitions.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="feature-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Platform Features</h2>
+            <p>Everything you need to learn, compete, and collaborate</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="{{ url_for('static', filename='assets/images/features/competitions/003-trophy-6.png') }}" 
+                             alt="Competitions" 
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-trophy\' style=\'font-size: 2.5rem; color: white;\'></i>';">
+                    </div>
+                    <h3 class="feature-title">Competitions</h3>
+                    <p class="feature-description">
+                        Join ML competitions, submit your models, and climb the leaderboard. 
+                        Win prizes and recognition for your work.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="{{ url_for('static', filename='assets/icons/ai-ml/039-data.png') }}" 
+                             alt="Datasets" 
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-database\' style=\'font-size: 2.5rem; color: white;\'></i>';">
+                    </div>
+                    <h3 class="feature-title">Share Datasets</h3>
+                    <p class="feature-description">
+                        Upload and share datasets with the community. 
+                        Discover new data sources for your projects.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="{{ url_for('static', filename='assets/icons/ai-ml/016-coding.png') }}" 
+                             alt="Projects" 
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-project-diagram\' style=\'font-size: 2.5rem; color: white;\'></i>';">
+                    </div>
+                    <h3 class="feature-title">Project Showcase</h3>
+                    <p class="feature-description">
+                        Publish your ML projects from MLStudio. 
+                        Showcase your work and get feedback from peers.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="{{ url_for('static', filename='assets/icons/ai-ml/019-chat.png') }}" 
+                             alt="Discussions" 
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-comments\' style=\'font-size: 2.5rem; color: white;\'></i>';">
+                    </div>
+                    <h3 class="feature-title">Discussions</h3>
+                    <p class="feature-description">
+                        Ask questions, share insights, and learn from the community. 
+                        Get help when you're stuck.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="{{ url_for('static', filename='assets/icons/ai-ml/030-human.png') }}" 
+                             alt="Mentorship" 
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-users-cog\' style=\'font-size: 2.5rem; color: white;\'></i>';">
+                    </div>
+                    <h3 class="feature-title">Mentorship</h3>
+                    <p class="feature-description">
+                        Connect with mentors and mentees. 
+                        Learn from experienced practitioners and help others grow.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="{{ url_for('static', filename='assets/images/features/competitions/022-medal.png') }}" 
+                             alt="Certificates" 
+                             onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\'fas fa-certificate\' style=\'font-size: 2.5rem; color: white;\'></i>';">
+                    </div>
+                    <h3 class="feature-title">Certificates</h3>
+                    <p class="feature-description">
+                        Earn certificates for completing challenges and achieving milestones. 
+                        Build your ML portfolio.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Competition Showcase -->
+<section class="competition-showcase">
+    <div class="container">
+        <div class="section-header">
+            <h2>Active Competitions</h2>
+            <p>Join the challenge and compete for the top spot</p>
+        </div>
+        
+        <div class="row g-4">
+            {% if competitions and competitions|length > 0 %}
+                {% for competition in competitions[:3] %}
+                <div class="col-md-4">
+                    <div class="competition-card">
+                        <img src="{{ url_for('static', filename='assets/images/features/competitions/003-trophy-6.png') }}" 
+                             alt="Trophy" 
+                             class="competition-icon"
+                             onerror="this.style.display='none';">
+                        <h4 class="mb-3" style="font-weight: 600; color: var(--text-primary-color);">{{ competition.title }}</h4>
+                        <p class="text-muted mb-3" style="line-height: 1.6;">
+                            {{ competition.description[:120] if competition.description else 'No description' }}{% if competition.description and competition.description|length > 120 %}...{% endif %}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="badge-modern {% if competition.is_active %}badge-modern-success{% else %}badge-modern-secondary{% endif %}">
+                                {% if competition.is_active %}Active{% else %}Ended{% endif %}
+                            </span>
+                            {% if competition.participant_count %}
+                            <small class="text-muted">
+                                <i class="fas fa-users me-1"></i> {{ competition.participant_count }} participants
+                            </small>
+                            {% endif %}
+                        </div>
+                        <a href="{{ url_for('competitions.detail', competition_id=competition.id) }}" 
+                           class="btn btn-modern btn-modern-primary w-100">
+                            <i class="fas fa-arrow-right me-2"></i> View Competition
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center">
+                    <img src="{{ url_for('static', filename='assets/images/features/competitions/049-trophy.png') }}" 
+                         alt="No competitions" 
+                         style="width: 120px; opacity: 0.3; margin-bottom: 1rem;"
+                         onerror="this.style.display='none';">
+                    <p class="text-muted" style="font-size: 1.1rem;">No active competitions at the moment. Check back soon!</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if competitions and competitions|length > 3 %}
+        <div class="text-center mt-5">
+            <a href="{{ url_for('competitions.browse') }}" class="btn btn-modern btn-modern-primary btn-lg">
+                <i class="fas fa-trophy me-2"></i> View All Competitions
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <h2 class="cta-title">Ready to Join the Community?</h2>
+        <p class="cta-description">
+            Start competing, sharing, and learning today
+        </p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap" style="position: relative; z-index: 1;">
+            {% if current_user %}
+            <a href="{{ url_for('main.index') }}" class="btn btn-light btn-lg px-5 py-3">
+                <i class="fas fa-home me-2"></i> Go to Dashboard
+            </a>
+            {% else %}
+            <a href="{{ url_for('main.login_page') }}" class="btn btn-light btn-lg px-5 py-3">
+                <i class="fas fa-sign-in-alt me-2"></i> Sign Up Now
+            </a>
+            <a href="{{ url_for('competitions.browse') }}" class="btn btn-outline-light btn-lg px-5 py-3">
+                <i class="fas fa-trophy me-2"></i> Browse Competitions
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

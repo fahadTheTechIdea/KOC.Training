@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup - Beep.AI.Community</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .setup-card {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 700px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: #e0e0e0;
+            z-index: 0;
+            transform: translateY(-50%);
+        }
+        .step {
+            background: white;
+            border: 3px solid #e0e0e0;
+            color: #999;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+        .step.active {
+            border-color: #667eea;
+            color: #667eea;
+            background: white;
+            transform: scale(1.1);
+        }
+        .step.completed {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+        .step-content {
+            min-height: 400px;
+        }
+        .industry-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1rem;
+        }
+        .industry-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+        .industry-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        .industry-icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+        }
+        .icon-select-card {
+            transition: all 0.2s;
+            border: 1px solid #dee2e6;
+        }
+        .icon-select-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-outline-secondary {
+            border-radius: 8px;
+            padding: 0.75rem 2rem;
+            transition: all 0.3s ease;
+        }
+        .btn-outline-secondary:hover {
+            transform: translateY(-2px);
+        }
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-card">
+        <div class="text-center mb-4">
+            <h2 class="mb-2">🚀 Beep.AI.Community</h2>
+            <p class="text-muted">Initial Setup Wizard</p>
+        </div>
+
+        <div class="step-indicator">
+            <div class="step active" id="step1-indicator">1</div>
+            <div class="step" id="step2-indicator">2</div>
+            <div class="step" id="step3-indicator">3</div>
+            <div class="step" id="step4-indicator">4</div>
+            <div class="step" id="step5-indicator">5</div>
+        </div>
+
+        <div id="step1" class="step-content">
+            <h4 class="mb-4"><i class="bi bi-person-shield me-2"></i>Create Admin Account</h4>
+            
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input type="text" class="form-control" id="adminUsername" value="admin" required>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" id="adminEmail" required>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control" id="adminPassword" required>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label">Confirm Password</label>
+                <input type="password" class="form-control" id="adminPasswordConfirm" required>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-primary" onclick="goToStep2()">
+                    Next <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="step2" class="step-content" style="display: none;">
+            <h4 class="mb-4"><i class="bi bi-database me-2"></i>Database Configuration</h4>
+            
+            <div class="mb-4">
+                <label class="form-label">Database Type</label>
+                <select class="form-select" id="dbProvider">
+                    <option value="sqlite" selected>SQLite (Recommended for most users)</option>
+                    <option value="postgresql" disabled>PostgreSQL (Coming soon)</option>
+                    <option value="sqlserver" disabled>SQL Server (Coming soon)</option>
+                </select>
+                <small class="text-muted">SQLite is perfect for getting started. Other databases can be configured later.</small>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-outline-secondary" onclick="goToStep1()">
+                    <i class="bi bi-arrow-left me-1"></i> Back
+                </button>
+                <button class="btn btn-primary" onclick="submitDatabaseConfig()">
+                    Next <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="step3" class="step-content" style="display: none;">
+            <h4 class="mb-4"><i class="bi bi-shield-lock me-2"></i>Authentication Configuration</h4>
+            
+            <div class="mb-4">
+                <label class="form-label">Authentication Mode</label>
+                <select class="form-select" id="authMode" onchange="toggleIdentityServerFields()">
+                    <option value="local" selected>Local JWT Authentication</option>
+                    <option value="identity_server">Identity Server (OAuth2/OIDC)</option>
+                </select>
+                <small class="text-muted">Choose how users will authenticate. Identity Server allows integration with enterprise SSO.</small>
+            </div>
+
+            <div id="identityServerFields" style="display: none;">
+                <div class="mb-3">
+                    <label class="form-label">Identity Server URL <span class="text-danger">*</span></label>
+                    <input type="url" class="form-control" id="identityServerUrl" placeholder="https://identity.example.com">
+                    <small class="text-muted">Base URL of your Identity Server instance</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Client ID <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="clientId" placeholder="community-client">
+                    <small class="text-muted">OAuth2 client ID registered in Identity Server</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Client Secret</label>
+                    <input type="password" class="form-control" id="clientSecret" placeholder="(optional)">
+                    <small class="text-muted">Client secret for confidential clients (optional for public clients)</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Redirect URIs</label>
+                    <input type="text" class="form-control" id="redirectUris" placeholder="http://localhost:5002/auth/callback">
+                    <small class="text-muted">Comma-separated list of allowed redirect URIs</small>
+                </div>
+                
+                <div class="mb-3">
+                    <button type="button" class="btn btn-outline-info" onclick="testIdentityServerConnection()">
+                        <i class="bi bi-wifi"></i> Test Connection
+                    </button>
+                    <span id="connectionStatus" class="ms-2"></span>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-outline-secondary" onclick="goToStep2()">
+                    <i class="bi bi-arrow-left me-1"></i> Back
+                </button>
+                <button class="btn btn-primary" onclick="submitAuthConfig()">
+                    Next <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="step4" class="step-content" style="display: none;">
+            <h4 class="mb-4"><i class="bi bi-palette me-2"></i>Branding & Industry Theme</h4>
+            
+            <div class="mb-4">
+                <label class="form-label mb-3">Select Industry (Choose theme preset)</label>
+                <div id="industriesContainer"></div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Company Name (Optional)</label>
+                <input type="text" class="form-control" id="companyName" placeholder="Your Company Name">
+                <small class="text-muted">Customize the platform name for your organization</small>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Company Logo (Optional)</label>
+                <input type="file" class="form-control" id="companyLogo" accept="image/*">
+                <small class="text-muted">Upload your company logo (PNG, JPG, max 2MB)</small>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label">Or Select Industry Icon (Optional)</label>
+                <div id="industryIconsContainer" class="row g-2">
+                    <small class="text-muted">Select an icon from available industry icons</small>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-outline-secondary" onclick="goToStep3()">
+                    <i class="bi bi-arrow-left me-1"></i> Back
+                </button>
+                <button class="btn btn-primary" onclick="submitBrandingConfig()">
+                    Next <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="step5" class="step-content" style="display: none;">
+            <h4 class="mb-4"><i class="bi bi-check-circle me-2 text-success"></i>Setup Complete!</h4>
+            
+            <div class="alert alert-success">
+                <h5>✓ All set! Your platform is ready.</h5>
+                <p class="mb-0">You can now start using Beep.AI.Community with your custom branding.</p>
+            </div>
+
+            <div class="text-center mt-4">
+                <button class="btn btn-primary btn-lg" onclick="completeSetup()">
+                    <i class="bi bi-rocket-takeoff me-2"></i> Launch Platform
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let selectedIndustry = 'general';
+        let selectedIcon = null;
+        let industries = [];
+        let industryIcons = [];
+
+        fetch('/setup/api/industries')
+            .then(r => r.json())
+            .then(data => {
+                industries = data.industries;
+                renderIndustries();
+            });
+
+        function renderIndustries() {
+            const container = document.getElementById('industriesContainer');
+            container.innerHTML = industries.map(ind => `
+                <div class="industry-card" onclick="selectIndustry('${ind.id}')" id="industry-${ind.id}">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <div class="industry-icon" style="background: ${ind.primary_color}; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                                <i class="bi bi-building"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">${ind.name}</h5>
+                            <p class="text-muted mb-0">${ind.tagline}</p>
+                        </div>
+                        <i class="bi bi-check-circle-fill text-primary" style="display: none;" id="check-${ind.id}"></i>
+                    </div>
+                </div>
+            `).join('');
+            
+            if (industries.length > 0) {
+                selectIndustry(industries[0].id);
+            }
+        }
+
+        function selectIndustry(industryId) {
+            selectedIndustry = industryId;
+            selectedIcon = null;
+            document.querySelectorAll('.industry-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelectorAll('.industry-card i').forEach(icon => {
+                icon.style.display = 'none';
+            });
+            
+            const card = document.getElementById(`industry-${industryId}`);
+            const check = document.getElementById(`check-${industryId}`);
+            if (card) {
+                card.classList.add('selected');
+                if (check) check.style.display = 'block';
+            }
+            
+            // Load icons for selected industry
+            loadIndustryIcons(industryId);
+        }
+        
+        function loadIndustryIcons(industryId) {
+            const container = document.getElementById('industryIconsContainer');
+            container.innerHTML = '<div class="col-12"><small class="text-muted">Loading icons...</small></div>';
+            
+            fetch(`/setup/api/industries/${industryId}/icons`)
+                .then(r => r.json())
+                .then(data => {
+                    industryIcons = data.icons || [];
+                    renderIndustryIcons();
+                })
+                .catch(() => {
+                    container.innerHTML = '<div class="col-12"><small class="text-muted">No icons available</small></div>';
+                });
+        }
+        
+        function renderIndustryIcons() {
+            const container = document.getElementById('industryIconsContainer');
+            
+            if (industryIcons.length === 0) {
+                container.innerHTML = '<div class="col-12"><small class="text-muted">No icons available for this industry</small></div>';
+                return;
+            }
+            
+            container.innerHTML = industryIcons.map(icon => `
+                <div class="col-md-3 col-sm-4 col-6">
+                    <div class="card icon-select-card" onclick="selectIcon('${icon.name}')" id="icon-${icon.name}" style="cursor: pointer; position: relative;">
+                        <div class="card-body text-center p-2" style="min-height: 80px; display: flex; align-items: center; justify-content: center;">
+                            ${icon.url ? `<img src="${icon.url}" alt="Icon" style="max-width: 64px; max-height: 64px; object-fit: contain;" onerror="this.onerror=null; this.src=''; this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-image fa-3x text-muted\\'></i>'">` : 
+                              `<i class="fas fa-image fa-3x text-muted"></i>`}
+                            <i class="bi bi-check-circle-fill text-primary" style="display: none; position: absolute; top: 5px; right: 5px; font-size: 1.2rem; background: white; border-radius: 50%;" id="icon-check-${icon.name}"></i>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function selectIcon(iconName) {
+            selectedIcon = iconName;
+            document.querySelectorAll('.icon-select-card').forEach(card => {
+                card.classList.remove('border-primary');
+                card.style.borderWidth = '1px';
+            });
+            document.querySelectorAll('[id^="icon-check-"]').forEach(check => {
+                check.style.display = 'none';
+            });
+            
+            const card = document.getElementById(`icon-${iconName}`);
+            const check = document.getElementById(`icon-check-${iconName}`);
+            if (card) {
+                card.classList.add('border-primary');
+                card.style.borderWidth = '3px';
+                if (check) check.style.display = 'block';
+            }
+        }
+
+        function updateStepIndicators(step) {
+            for (let i = 1; i <= 5; i++) {
+                const indicator = document.getElementById(`step${i}-indicator`);
+                indicator.classList.remove('active', 'completed');
+                if (i < step) {
+                    indicator.classList.add('completed');
+                } else if (i === step) {
+                    indicator.classList.add('active');
+                }
+            }
+        }
+
+        function goToStep(step) {
+            document.querySelectorAll('.step-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            document.getElementById(`step${step}`).style.display = 'block';
+            updateStepIndicators(step);
+            currentStep = step;
+        }
+
+        function goToStep1() { goToStep(1); }
+        function goToStep2() {
+            const username = document.getElementById('adminUsername').value;
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const confirmPassword = document.getElementById('adminPasswordConfirm').value;
+            
+            if (!username || !email || !password) {
+                alert('Please fill all fields');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+            
+            fetch('/setup/api/step1-admin', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username, email, password, confirm_password: confirmPassword})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    goToStep(2);
+                } else {
+                    alert(data.message || 'Error creating admin user');
+                }
+            });
+        }
+        
+        function toggleIdentityServerFields() {
+            const authMode = document.getElementById('authMode').value;
+            const identityServerFields = document.getElementById('identityServerFields');
+            if (authMode === 'identity_server') {
+                identityServerFields.style.display = 'block';
+            } else {
+                identityServerFields.style.display = 'none';
+            }
+        }
+        
+        function testIdentityServerConnection() {
+            const url = document.getElementById('identityServerUrl').value;
+            const clientId = document.getElementById('clientId').value;
+            const clientSecret = document.getElementById('clientSecret').value;
+            const statusEl = document.getElementById('connectionStatus');
+            
+            if (!url || !clientId) {
+                statusEl.innerHTML = '<span class="text-danger">Please fill required fields</span>';
+                return;
+            }
+            
+            statusEl.innerHTML = '<span class="text-info">Testing connection...</span>';
+            
+            fetch('/setup/api/step3-auth/test', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    identity_server_url: url,
+                    client_id: clientId,
+                    client_secret: clientSecret || ''
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    statusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Connection successful!</span>';
+                } else {
+                    statusEl.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle"></i> ${data.message || 'Connection failed'}</span>`;
+                }
+            })
+            .catch(() => {
+                statusEl.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> Connection test failed</span>';
+            });
+        }
+        
+        function submitDatabaseConfig() {
+            const provider = document.getElementById('dbProvider').value;
+            fetch('/setup/api/step2-database', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({provider})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    goToStep(3);
+                } else {
+                    alert(data.message || 'Error configuring database');
+                }
+            });
+        }
+        
+        function submitAuthConfig() {
+            const authMode = document.getElementById('authMode').value;
+            const authData = { auth_mode: authMode };
+            
+            if (authMode === 'identity_server') {
+                const url = document.getElementById('identityServerUrl').value;
+                const clientId = document.getElementById('clientId').value;
+                const clientSecret = document.getElementById('clientSecret').value;
+                const redirectUris = document.getElementById('redirectUris').value;
+                
+                if (!url || !clientId) {
+                    alert('Identity Server URL and Client ID are required');
+                    return;
+                }
+                
+                authData.identity_server_url = url;
+                authData.client_id = clientId;
+                if (clientSecret) authData.client_secret = clientSecret;
+                if (redirectUris) authData.redirect_uris = redirectUris;
+            }
+            
+            fetch('/setup/api/step3-auth', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(authData)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    goToStep(4);
+                } else {
+                    alert(data.message || 'Error configuring authentication');
+                }
+            });
+        }
+        
+        function submitBrandingConfig() {
+            const formData = new FormData();
+            formData.append('industry', selectedIndustry);
+            
+            const companyName = document.getElementById('companyName').value;
+            if (companyName) {
+                formData.append('company_name', companyName);
+            }
+            
+            if (selectedIcon) {
+                formData.append('icon_name', selectedIcon);
+            }
+            
+            // Handle logo file upload
+            const logoFile = document.getElementById('companyLogo').files[0];
+            if (logoFile) {
+                formData.append('logo', logoFile);
+            }
+            
+            fetch('/setup/api/step5-branding', {
+                method: 'POST',
+                body: formData  // Don't set Content-Type header, browser will set it with boundary
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    goToStep(5);
+                } else {
+                    alert(data.message || 'Error configuring branding');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error uploading branding configuration. Please try again.');
+            });
+        }
+        
+        function completeSetup() {
+            fetch('/setup/api/step6-complete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect || '/';
+                } else {
+                    alert(data.message || 'Error completing setup');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

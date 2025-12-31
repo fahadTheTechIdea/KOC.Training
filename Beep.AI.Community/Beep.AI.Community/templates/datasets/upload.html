@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Data - {{ branding.app_name if branding else 'Beep.AI.Community' }}{% endblock %}
+
+{% block content %}
+<h1><i class="bi bi-upload" style="color: var(--theme-primary);"></i> Share Your Data</h1>
+<p class="text-muted">Upload and share your dataset with the community</p>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card-modern">
+            <div class="card-modern-body">
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('datasets.upload') }}" class="form-modern">
+                    <h5 class="mb-3"><i class="bi bi-cloud-upload me-2"></i>Step 1: Choose File</h5>
+                    <div class="mb-4">
+                        <div class="upload-zone-modern" id="uploadZone">
+                            <input type="file" class="form-control d-none" name="file" id="fileInput" required accept=".csv,.json,.xlsx,.xls,.parquet">
+                            <div class="upload-zone-content">
+                                <i class="bi bi-cloud-upload upload-icon"></i>
+                                <p class="upload-text">Click to browse or drag and drop your file here</p>
+                                <p class="upload-hint">Supported formats: CSV, JSON, Excel, Parquet (Max 100MB)</p>
+                            </div>
+                        </div>
+                        <div id="fileSelected" class="file-selected-modern" style="display: none;">
+                            <i class="bi bi-file-earmark-check"></i>
+                            <span id="fileName"></span>
+                            <button type="button" class="btn btn-sm" onclick="clearFile()" style="background: var(--theme-error); color: var(--text-on-primary);">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <h5 class="mb-3 mt-4"><i class="bi bi-pencil me-2"></i>Step 2: Describe Your Data</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Title *</label>
+                        <input type="text" class="form-control" name="title" required placeholder="e.g., Sales Data 2024">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="4" placeholder="What is this data about? What can it be used for?"></textarea>
+                    </div>
+                    
+                    <h5 class="mb-3 mt-4"><i class="bi bi-tags me-2"></i>Step 3: Categorize</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" name="category">
+                            <option value="">Select Category</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Weather">Weather</option>
+                            <option value="Images">Images</option>
+                            <option value="Business">Business</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Education">Education</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tags (comma-separated)</label>
+                        <input type="text" class="form-control" name="tags" placeholder="e.g., sales, revenue, 2024">
+                        <small class="form-text">Help others find your data</small>
+                    </div>
+                    
+                    <h5 class="mb-3 mt-4"><i class="bi bi-share me-2"></i>Step 4: Sharing</h5>
+                    <div class="mb-3">
+                        <label class="form-label">License</label>
+                        <select class="form-select" name="license">
+                            <option value="MIT">MIT License</option>
+                            <option value="Apache-2.0">Apache 2.0</option>
+                            <option value="CC0">CC0 (Public Domain)</option>
+                            <option value="CC-BY">CC-BY</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_public" value="true" id="isPublic" checked>
+                            <label class="form-check-label" for="isPublic">
+                                Make this dataset public (visible to everyone)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('datasets.browse') }}" class="btn btn-modern btn-modern-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-modern btn-modern-primary">
+                            <i class="bi bi-upload me-1"></i>Share Data
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card-modern" style="background: var(--bg-secondary);">
+            <div class="card-modern-body">
+                <h5 class="card-modern-title"><i class="bi bi-lightbulb me-2"></i>Tips</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="bi bi-check-circle me-1" style="color: var(--theme-success);"></i>Use clear, descriptive titles</li>
+                    <li class="mb-2"><i class="bi bi-check-circle me-1" style="color: var(--theme-success);"></i>Provide helpful descriptions</li>
+                    <li class="mb-2"><i class="bi bi-check-circle me-1" style="color: var(--theme-success);"></i>Add relevant tags</li>
+                    <li class="mb-2"><i class="bi bi-check-circle me-1" style="color: var(--theme-success);"></i>Choose appropriate category</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Modern file upload with drag and drop
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+const fileSelected = document.getElementById('fileSelected');
+const fileName = document.getElementById('fileName');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+
+uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('upload-zone-dragover');
+});
+
+uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('upload-zone-dragover');
+});
+
+uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('upload-zone-dragover');
+    if (e.dataTransfer.files.length > 0) {
+        fileInput.files = e.dataTransfer.files;
+        handleFileSelect();
+    }
+});
+
+fileInput.addEventListener('change', handleFileSelect);
+
+function handleFileSelect() {
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        fileName.textContent = file.name;
+        uploadZone.style.display = 'none';
+        fileSelected.style.display = 'flex';
+    }
+}
+
+function clearFile() {
+    fileInput.value = '';
+    uploadZone.style.display = 'block';
+    fileSelected.style.display = 'none';
+}
+</script>
+{% endblock %}

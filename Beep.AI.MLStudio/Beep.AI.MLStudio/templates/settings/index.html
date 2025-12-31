@@ -1,0 +1,719 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Beep ML Studio{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-container {
+        max-width: 1200px;
+    }
+    
+    .settings-category {
+        margin-bottom: 2rem;
+    }
+    
+    .settings-category-header {
+        /* Match table header style - consistent with theme */
+        background: var(--bg-surface-elevated) !important;
+        color: var(--text-primary) !important;
+        padding: 1rem 1.5rem;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        margin-bottom: 0;
+        border-bottom: 2px solid var(--border-color);
+        font-family: var(--font-mono);
+    }
+    
+    .settings-category-header *,
+    .settings-category-header h1,
+    .settings-category-header h2,
+    .settings-category-header h3,
+    .settings-category-header h4,
+    .settings-category-header h5,
+    .settings-category-header h6,
+    .settings-category-header p,
+    .settings-category-header span,
+    .settings-category-header small,
+    .settings-category-header i,
+    .settings-category-header .bi {
+        color: var(--text-primary) !important;
+    }
+    
+    .settings-category-header h5 {
+        color: var(--text-primary) !important;
+        font-weight: 600 !important;
+        font-family: var(--font-mono);
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        margin: 0;
+    }
+    
+    .settings-category-header i,
+    .settings-category-header .bi {
+        color: var(--text-primary) !important;
+    }
+    
+    .settings-table {
+        background: var(--bg-surface);
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }
+    
+    .settings-table table {
+        margin-bottom: 0;
+        background: var(--bg-surface);
+        color: var(--text-primary);
+    }
+    
+    .settings-table td {
+        vertical-align: middle;
+        padding: 1rem;
+        background: var(--bg-surface);
+        color: var(--text-primary);
+    }
+    
+    .settings-table tr {
+        background: var(--bg-surface);
+    }
+    
+    .settings-table tr:hover {
+        background: var(--bg-surface-elevated);
+    }
+    
+    .settings-table tr:not(:last-child) td {
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .setting-key {
+        font-weight: 600;
+        color: var(--text-primary);
+        min-width: 200px;
+        font-family: var(--font-mono);
+    }
+    
+    .setting-description {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        font-family: var(--font-mono);
+    }
+    
+    .setting-value {
+        min-width: 300px;
+    }
+    
+    /* Forms use component library form-modern class */
+    
+    #environments-tbody td {
+        vertical-align: middle;
+    }
+    
+    #environments-tbody .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .alert {
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container settings-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="bi bi-gear-fill" style="color: var(--theme-primary);"></i> Settings</h1>
+            <p class="text-muted">Manage application configuration and preferences</p>
+        </div>
+        <div>
+            <button class="btn btn-modern btn-modern-secondary" onclick="resetAllSettings()">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset to Defaults
+            </button>
+        </div>
+    </div>
+    
+    <!-- Community Connection Section -->
+    <div class="settings-category">
+        <div class="settings-category-header">
+            <h5 class="mb-0">
+                <i class="bi bi-cloud me-2"></i>Community Platform Connection
+            </h5>
+        </div>
+        <div class="card-modern">
+            <div class="card-modern-body">
+                <div class="row align-items-center mb-3">
+                    <div class="col-md-8">
+                        <h6 class="mb-2">Beep.AI.Community Integration</h6>
+                        <p class="text-muted small mb-0">Connect to Community platform to participate in competitions, share projects, and track your progress.</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        {% if community_config.connected %}
+                        <span class="badge-modern badge-modern-success mb-2 d-block">Connected</span>
+                        <a href="{{ community_config.url }}" target="_blank" class="btn btn-modern btn-modern-secondary btn-sm">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Open Community
+                        </a>
+                        {% else %}
+                        <span class="badge-modern badge-modern-warning mb-2 d-block">Not Connected</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <form id="communityConnectionForm" class="form-modern">
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="community_url" class="form-label">Community Server URL</label>
+                            <input type="url" class="form-control" id="community_url" 
+                                   value="{{ community_config.url if community_config else 'http://127.0.0.1:5002' }}"
+                                   placeholder="http://127.0.0.1:5002">
+                            <small class="form-text">Base URL of the Community platform</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="community_api_key" class="form-label">API Key</label>
+                            <input type="password" class="form-control" id="community_api_key" 
+                                   value="{{ community_config.api_key if community_config and community_config.api_key else '' }}"
+                                   placeholder="Enter your API key from Community platform">
+                            <small class="form-text">
+                                Get your API key from <a href="{{ community_config.url if community_config and community_config.url else '#' }}/settings/api-keys" target="_blank">Community Settings</a>
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-modern btn-modern-primary" onclick="testCommunityConnection()">
+                            <i class="bi bi-plug me-1"></i>Test Connection
+                        </button>
+                        <button type="button" class="btn btn-modern btn-modern-primary" onclick="saveCommunityConnection()" style="background: var(--theme-success); color: var(--text-on-primary);">
+                            <i class="bi bi-save me-1"></i>Save Connection
+                        </button>
+                        {% if community_config.connected %}
+                        <button type="button" class="btn btn-modern" onclick="disconnectCommunity()" style="background: var(--theme-error); color: var(--text-on-primary);">
+                            <i class="bi bi-x-circle me-1"></i>Disconnect
+                        </button>
+                        {% endif %}
+                    </div>
+                </form>
+                
+                <div id="communityConnectionStatus" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Virtual Environments Section -->
+    <div class="settings-category">
+        <div class="settings-category-header">
+            <h5 class="mb-0">
+                <i class="bi bi-box me-2"></i>Virtual Environments
+            </h5>
+        </div>
+        <div class="card-modern">
+            <div class="card-modern-body">
+                <p class="text-muted small mb-3">Manage Python virtual environments. Deleting an environment will also delete any linked projects if selected.</p>
+                <div id="environments-loading" class="text-center py-3">
+                    <div class="spinner-modern" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span class="ms-2">Loading environments...</span>
+                </div>
+                <div id="environments-list" class="d-none">
+                    <table class="table-modern table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Environment Name</th>
+                                <th>Python Version</th>
+                                <th>Packages</th>
+                                <th>Size</th>
+                                <th>Linked Project</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="environments-tbody">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="environments-empty" class="d-none text-center py-4 text-muted">
+                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                    <p class="mt-2">No virtual environments found</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Form -->
+    <form method="POST" action="{{ url_for('settings.save') }}" id="settingsForm">
+        {% for category in categories %}
+        <div class="settings-category">
+            <div class="settings-category-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-{{ 'folder' if category == 'paths' else 'cpu' if category == 'environment' else 'diagram-3' if category == 'ml' else 'palette' if category == 'ui' else 'sliders' }}"></i>
+                    {{ category|title }} Settings
+                </h5>
+            </div>
+            <div class="card-modern">
+                <div class="card-modern-body">
+                    <table class="table-modern table-hover mb-0">
+                    <tbody>
+                        {% for setting in settings_by_category[category] %}
+                        <tr>
+                            <td class="setting-key">
+                                <div>{{ setting.key }}</div>
+                                <small class="setting-description">{{ setting.description or 'No description' }}</small>
+                            </td>
+                            <td class="setting-value">
+                                {% if setting.value_type == 'boolean' %}
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" 
+                                               type="checkbox" 
+                                               id="setting_{{ setting.key }}" 
+                                               name="setting_{{ setting.key }}"
+                                               value="true"
+                                               {{ 'checked' if setting.get_value() else '' }}>
+                                        <label class="form-check-label" for="setting_{{ setting.key }}">
+                                            {{ 'Enabled' if setting.get_value() else 'Disabled' }}
+                                        </label>
+                                    </div>
+                                {% elif setting.value_type == 'number' %}
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="setting_{{ setting.key }}" 
+                                           name="setting_{{ setting.key }}"
+                                           value="{{ setting.get_value() }}"
+                                           step="{{ '0.01' if '.' in setting.value else '1' }}">
+                                {% elif setting.value_type == 'path' %}
+                                    <div class="input-group">
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="setting_{{ setting.key }}" 
+                                               name="setting_{{ setting.key }}"
+                                               value="{{ setting.get_value() }}">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="browsePath('{{ setting.key }}')">
+                                            <i class="bi bi-folder"></i>
+                                        </button>
+                                    </div>
+                                {% elif setting.key == 'log_level' %}
+                                    <select class="form-select" id="setting_{{ setting.key }}" name="setting_{{ setting.key }}">
+                                        <option value="DEBUG" {{ 'selected' if setting.get_value() == 'DEBUG' else '' }}>DEBUG</option>
+                                        <option value="INFO" {{ 'selected' if setting.get_value() == 'INFO' else '' }}>INFO</option>
+                                        <option value="WARNING" {{ 'selected' if setting.get_value() == 'WARNING' else '' }}>WARNING</option>
+                                        <option value="ERROR" {{ 'selected' if setting.get_value() == 'ERROR' else '' }}>ERROR</option>
+                                    </select>
+                                {% elif setting.key == 'default_framework' %}
+                                    <select class="form-select" id="setting_{{ setting.key }}" name="setting_{{ setting.key }}">
+                                        <option value="scikit-learn" {{ 'selected' if setting.get_value() == 'scikit-learn' else '' }}>Scikit-learn</option>
+                                        <option value="tensorflow" {{ 'selected' if setting.get_value() == 'tensorflow' else '' }}>TensorFlow</option>
+                                        <option value="pytorch" {{ 'selected' if setting.get_value() == 'pytorch' else '' }}>PyTorch</option>
+                                        <option value="xgboost" {{ 'selected' if setting.get_value() == 'xgboost' else '' }}>XGBoost</option>
+                                        <option value="lightgbm" {{ 'selected' if setting.get_value() == 'lightgbm' else '' }}>LightGBM</option>
+                                    </select>
+                                {% elif setting.key == 'environment_manager_type' %}
+                                    <select class="form-select" id="setting_{{ setting.key }}" name="setting_{{ setting.key }}">
+                                        <option value="local" {{ 'selected' if setting.get_value() == 'local' else '' }}>Local</option>
+                                        <option value="host_admin" {{ 'selected' if setting.get_value() == 'host_admin' else '' }}>Host Admin</option>
+                                    </select>
+                                {% else %}
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="setting_{{ setting.key }}" 
+                                           name="setting_{{ setting.key }}"
+                                           value="{{ setting.get_value() }}"
+                                           {{ 'readonly' if setting.is_encrypted else '' }}
+                                           placeholder="{{ setting.description or 'Enter value' }}">
+                                    {% if setting.is_encrypted %}
+                                    <small class="text-muted">Encrypted - value hidden for security</small>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge-modern badge-modern-secondary">{{ setting.value_type }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <div class="d-flex justify-content-end gap-2 mb-4">
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-modern btn-modern-secondary">
+                <i class="bi bi-x-circle me-1"></i>Cancel
+            </a>
+            <button type="submit" class="btn btn-modern btn-modern-primary">
+                <i class="bi bi-save me-1"></i>Save All Settings
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Reset Confirmation Modal -->
+<div class="modal fade modal-modern" id="resetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-arrow-counterclockwise me-2"></i>Reset Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to reset all settings to their default values? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-modern btn-modern-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-modern" onclick="confirmReset()" style="background: var(--theme-error); color: var(--text-on-primary);">Reset to Defaults</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Environment Confirmation Modal -->
+<div class="modal fade modal-modern" id="deleteEnvModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-trash me-2"></i>Delete Virtual Environment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="deleteEnvModalBody">
+                <!-- Populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-modern btn-modern-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-modern" id="confirmDeleteEnvBtn" onclick="confirmDeleteEnvironment()" style="background: var(--theme-error); color: var(--text-on-primary);">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function resetAllSettings() {
+        const modal = new bootstrap.Modal(document.getElementById('resetModal'));
+        modal.show();
+    }
+    
+    function confirmReset() {
+        fetch('/api/v1/settings/reset', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error resetting settings');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error resetting settings');
+        });
+    }
+    
+    function browsePath(settingKey) {
+        // For path selection, we'll use a simple prompt
+        // In a real implementation, you might use a file browser dialog
+        const currentValue = document.getElementById(`setting_${settingKey}`).value;
+        const newPath = prompt('Enter path:', currentValue);
+        if (newPath !== null) {
+            document.getElementById(`setting_${settingKey}`).value = newPath;
+        }
+    }
+    
+    // Update checkbox labels
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const label = this.nextElementSibling;
+            label.textContent = this.checked ? 'Enabled' : 'Disabled';
+        });
+    });
+    
+    // Load and display environments
+    let currentDeleteEnvName = null;
+    let currentDeleteProject = false;
+    
+    function loadEnvironments() {
+        fetch('/settings/environments')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('environments-loading').classList.add('d-none');
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    document.getElementById('environments-list').classList.remove('d-none');
+                    renderEnvironments(data.data);
+                } else {
+                    document.getElementById('environments-empty').classList.remove('d-none');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading environments:', error);
+                document.getElementById('environments-loading').innerHTML = 
+                    '<div class="alert-modern alert-modern-danger"><i class="bi bi-x-circle"></i><div>Error loading environments</div></div>';
+            });
+    }
+    
+    function renderEnvironments(environments) {
+        const tbody = document.getElementById('environments-tbody');
+        tbody.innerHTML = '';
+        
+        environments.forEach(env => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <strong>${env.name}</strong>
+                    <br><small class="text-muted">${env.path}</small>
+                </td>
+                <td>${env.python_version || 'N/A'}</td>
+                <td>${env.packages_count || 0} packages</td>
+                <td>${env.size_mb ? env.size_mb.toFixed(2) + ' MB' : 'N/A'}</td>
+                <td>
+                    ${env.linked_project 
+                        ? `<a href="/projects/${env.linked_project.id}" class="text-decoration-none">
+                             <i class="bi bi-folder"></i> ${env.linked_project.name}
+                           </a>`
+                        : '<span class="text-muted">None</span>'}
+                </td>
+                <td>
+                    <button class="btn btn-modern btn-sm" onclick="deleteEnvironment('${env.name}', ${env.linked_project ? JSON.stringify(env.linked_project).replace(/"/g, '&quot;') : 'null'})" style="background: var(--theme-error); color: var(--text-on-primary);">
+                        <i class="bi bi-trash me-1"></i>Delete
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    function deleteEnvironment(envName, linkedProject) {
+        currentDeleteEnvName = envName;
+        currentDeleteProject = false;
+        
+        const modalBody = document.getElementById('deleteEnvModalBody');
+        const confirmBtn = document.getElementById('confirmDeleteEnvBtn');
+        
+        // Reset button state when opening modal
+        confirmBtn.disabled = false;
+        
+        if (linkedProject) {
+            modalBody.innerHTML = `
+                <p><strong>Warning:</strong> This environment is linked to project "<strong>${linkedProject.name}</strong>".</p>
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" id="deleteProjectCheck">
+                    <label class="form-check-label" for="deleteProjectCheck">
+                        Also delete linked project "${linkedProject.name}"
+                    </label>
+                </div>
+                <p class="text-danger mt-3"><small>This action cannot be undone!</small></p>
+            `;
+            confirmBtn.textContent = 'Delete Environment';
+            
+            // Add event listener to checkbox after it's created
+            setTimeout(() => {
+                const checkbox = document.getElementById('deleteProjectCheck');
+                if (checkbox) {
+                    checkbox.addEventListener('change', function() {
+                        currentDeleteProject = this.checked;
+                        console.log('Delete project checkbox changed:', currentDeleteProject);
+                    });
+                }
+            }, 100);
+        } else {
+            modalBody.innerHTML = `
+                <p>Are you sure you want to delete environment "<strong>${envName}</strong>"?</p>
+                <p class="text-danger"><small>This action cannot be undone!</small></p>
+            `;
+            confirmBtn.textContent = 'Delete';
+        }
+        
+        const modal = new bootstrap.Modal(document.getElementById('deleteEnvModal'));
+        modal.show();
+    }
+    
+    function confirmDeleteEnvironment() {
+        if (!currentDeleteEnvName) return;
+        
+        // Get checkbox state directly in case the variable wasn't updated
+        const checkbox = document.getElementById('deleteProjectCheck');
+        if (checkbox) {
+            currentDeleteProject = checkbox.checked;
+        }
+        
+        console.log('Deleting environment:', currentDeleteEnvName);
+        console.log('Delete project:', currentDeleteProject);
+        
+        const confirmBtn = document.getElementById('confirmDeleteEnvBtn');
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Deleting...';
+        
+        fetch(`/settings/environments/${currentDeleteEnvName}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                delete_project: currentDeleteProject
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Always reset button state
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = 'Delete';
+            
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('deleteEnvModal')).hide();
+                // Reset state variables
+                currentDeleteEnvName = null;
+                currentDeleteProject = false;
+                
+                // Reload environments list
+                document.getElementById('environments-list').classList.add('d-none');
+                document.getElementById('environments-loading').classList.remove('d-none');
+                document.getElementById('environments-loading').innerHTML = 
+                    '<div class="spinner-border spinner-border-sm" role="status"></div> <span class="ms-2">Loading environments...</span>';
+                loadEnvironments();
+                
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert-modern alert-modern-success alert-dismissible fade show';
+                alertDiv.innerHTML = '<i class="bi bi-check-circle"></i><div>' + data.message + '</div><button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                document.querySelector('.settings-container').insertBefore(alertDiv, document.querySelector('.settings-container').firstChild);
+            } else {
+                alert('Error: ' + (data.error || 'Failed to delete environment'));
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting environment:', error);
+            alert('Error deleting environment: ' + error.message);
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = 'Delete';
+        });
+    }
+    
+    // Load environments on page load
+    loadEnvironments();
+    
+    // Community Connection Functions
+    function testCommunityConnection() {
+        const url = document.getElementById('community_url').value.trim();
+        const apiKey = document.getElementById('community_api_key').value.trim();
+        
+        if (!url) {
+            showCommunityStatus('Please enter Community server URL', 'warning');
+            return;
+        }
+        
+        const statusDiv = document.getElementById('communityConnectionStatus');
+        statusDiv.innerHTML = '<div class="alert-modern alert-modern-info"><i class="bi bi-hourglass-split"></i><div><span class="spinner-modern me-2"></span>Testing connection...</div></div>';
+        
+        fetch('/settings/community/test', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                url: url,
+                api_key: apiKey
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showCommunityStatus('Connection successful!', 'success');
+            } else {
+                showCommunityStatus('Connection failed: ' + (data.error || 'Unknown error'), 'danger');
+            }
+        })
+        .catch(error => {
+            showCommunityStatus('Error testing connection: ' + error.message, 'danger');
+        });
+    }
+    
+    function saveCommunityConnection() {
+        const url = document.getElementById('community_url').value.trim();
+        const apiKey = document.getElementById('community_api_key').value.trim();
+        
+        if (!url) {
+            showCommunityStatus('Please enter Community server URL', 'warning');
+            return;
+        }
+        
+        const statusDiv = document.getElementById('communityConnectionStatus');
+        statusDiv.innerHTML = '<div class="alert-modern alert-modern-info"><i class="bi bi-hourglass-split"></i><div><span class="spinner-modern me-2"></span>Saving connection...</div></div>';
+        
+        fetch('/settings/community/configure', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                url: url,
+                api_key: apiKey
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showCommunityStatus('Connection saved successfully!', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                showCommunityStatus('Failed to save connection: ' + (data.error || 'Unknown error'), 'danger');
+            }
+        })
+        .catch(error => {
+            showCommunityStatus('Error saving connection: ' + error.message, 'danger');
+        });
+    }
+    
+    function disconnectCommunity() {
+        if (!confirm('Are you sure you want to disconnect from Community platform?')) {
+            return;
+        }
+        
+        const statusDiv = document.getElementById('communityConnectionStatus');
+        statusDiv.innerHTML = '<div class="alert-modern alert-modern-info"><i class="bi bi-hourglass-split"></i><div><span class="spinner-modern me-2"></span>Disconnecting...</div></div>';
+        
+        fetch('/settings/community/disconnect', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showCommunityStatus('Disconnected successfully', 'info');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                showCommunityStatus('Error disconnecting: ' + (data.error || 'Unknown error'), 'danger');
+            }
+        })
+        .catch(error => {
+            showCommunityStatus('Error: ' + error.message, 'danger');
+        });
+    }
+    
+    function showCommunityStatus(message, type) {
+        const statusDiv = document.getElementById('communityConnectionStatus');
+        const alertClass = type === 'success' ? 'alert-modern-success' : type === 'warning' ? 'alert-modern-warning' : type === 'danger' ? 'alert-modern-danger' : 'alert-modern-info';
+        const icon = type === 'success' ? 'bi-check-circle' : type === 'warning' ? 'bi-exclamation-triangle' : type === 'danger' ? 'bi-x-circle' : 'bi-info-circle';
+        statusDiv.innerHTML = `<div class="alert-modern ${alertClass} alert-dismissible fade show">
+            <i class="bi ${icon}"></i>
+            <div>${message}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>`;
+    }
+</script>
+{% endblock %}
+

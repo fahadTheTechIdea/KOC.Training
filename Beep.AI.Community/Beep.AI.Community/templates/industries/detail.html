@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}{{ industry_theme.company_name }} - {{ branding.app_name if branding else 'Beep.AI.Community' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>
+            <span style="color: {{ industry_theme.primary_color }};">
+                {% if industry == 'oil_gas' %}
+                <i class="bi bi-fuel-pump me-2"></i>
+                {% elif industry == 'healthcare' %}
+                <i class="bi bi-heart-pulse me-2"></i>
+                {% elif industry == 'energy' %}
+                <i class="bi bi-lightning-charge me-2"></i>
+                {% else %}
+                <i class="bi bi-building me-2"></i>
+                {% endif %}
+                {{ industry_theme.company_name }}
+            </span>
+        </h1>
+        <p class="lead">{{ industry_theme.tagline }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('industries.list_industries') }}" class="btn btn-modern btn-modern-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to Industries
+        </a>
+    </div>
+</div>
+
+<!-- Industry Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card-modern" style="border-left: 4px solid {{ industry_theme.primary_color }};">
+            <div class="card-modern-body">
+                <h5 class="card-modern-title"><i class="bi bi-info-circle me-2" style="color: {{ industry_theme.primary_color }};"></i>About This Industry</h5>
+                <p class="mb-0">Explore machine learning solutions, datasets, and competitions tailored for {{ industry_theme.company_name }}. 
+                Discover use cases, find relevant datasets, and participate in industry-specific challenges.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scenarios Tabs -->
+<ul class="nav nav-tabs mb-4" id="scenariosTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="use-cases-tab" data-bs-toggle="tab" data-bs-target="#use-cases" type="button" role="tab">
+            <i class="fas fa-lightbulb"></i> Use Cases ({{ use_cases|length }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="datasets-tab" data-bs-toggle="tab" data-bs-target="#datasets" type="button" role="tab">
+            <i class="fas fa-database"></i> Dataset Ideas ({{ dataset_ideas|length }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="competitions-tab" data-bs-toggle="tab" data-bs-target="#competitions" type="button" role="tab">
+            <i class="fas fa-trophy"></i> Competition Ideas ({{ competition_ideas|length }})
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="scenariosTabContent">
+    <!-- Use Cases Tab -->
+    <div class="tab-pane fade show active" id="use-cases" role="tabpanel">
+        {% if use_cases %}
+        <div class="row">
+            {% for use_case in use_cases %}
+            <div class="col-md-6 mb-4">
+                <div class="card-modern h-100">
+                    <div class="card-modern-body">
+                        <h5 class="card-modern-title">
+                            {% if use_case.icon_name %}
+                            <img src="/static/assets/icons/{{ industry }}/{{ use_case.icon_name }}" alt="{{ use_case.title }}" style="max-width: 32px; max-height: 32px;" class="me-2" onerror="this.style.display='none'">
+                            {% endif %}
+                            {{ use_case.title }}
+                        </h5>
+                        <p class="card-text">{{ use_case.description }}</p>
+                        {% if use_case.details %}
+                        <div class="mt-2">
+                            {% for key, value in use_case.details.items() %}
+                            <span class="badge-modern badge-modern-secondary me-1">{{ key }}: {{ value }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert-modern alert-modern-info">
+            <i class="bi bi-info-circle"></i>
+            <div>No use cases available for this industry yet.</div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Dataset Ideas Tab -->
+    <div class="tab-pane fade" id="datasets" role="tabpanel">
+        {% if dataset_ideas %}
+        <div class="row">
+            {% for dataset in dataset_ideas %}
+            <div class="col-md-6 mb-4">
+                <div class="card-modern h-100">
+                    <div class="card-modern-body">
+                        <h5 class="card-modern-title">
+                            <i class="bi bi-database me-2" style="color: var(--theme-primary);"></i>{{ dataset.title }}
+                        </h5>
+                        <p class="card-text">{{ dataset.description }}</p>
+                        <a href="{{ url_for('datasets.browse') }}?search={{ dataset.title }}" class="btn btn-modern btn-modern-secondary btn-sm">
+                            <i class="bi bi-search me-1"></i>Find Datasets
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert-modern alert-modern-info">
+            <i class="bi bi-info-circle"></i>
+            <div>No dataset ideas available for this industry yet.</div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Competition Ideas Tab -->
+    <div class="tab-pane fade" id="competitions" role="tabpanel">
+        {% if competition_ideas %}
+        <div class="row">
+            {% for competition in competition_ideas %}
+            <div class="col-md-6 mb-4">
+                <div class="card-modern h-100" style="border-left: 4px solid var(--theme-warning);">
+                    <div class="card-modern-body">
+                        <h5 class="card-modern-title">
+                            <i class="bi bi-trophy me-2" style="color: var(--theme-warning);"></i>{{ competition.title }}
+                        </h5>
+                        <p class="card-text">{{ competition.description }}</p>
+                        {% if competition.details %}
+                        <div class="mb-2">
+                            {% if competition.details.metric %}
+                            <span class="badge-modern badge-modern-info">Metric: {{ competition.details.metric }}</span>
+                            {% endif %}
+                            {% if competition.details.submission_format %}
+                            <span class="badge-modern badge-modern-secondary">Format: {{ competition.details.submission_format }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        <a href="{{ url_for('competitions.create') }}?title={{ competition.title|urlencode }}" class="btn btn-modern btn-sm" style="background: var(--theme-warning); color: var(--text-on-primary);">
+                            <i class="bi bi-plus me-1"></i>Create Competition
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert-modern alert-modern-info">
+            <i class="bi bi-info-circle"></i>
+            <div>No competition ideas available for this industry yet.</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.industry-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.industry-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

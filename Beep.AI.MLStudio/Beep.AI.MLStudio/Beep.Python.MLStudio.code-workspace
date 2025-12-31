@@ -1,0 +1,34 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "H:/dev/iconPacks/oilandgas32mycollection/png"
+		},
+		{
+			"path": "H:/dev/iconPacks/BusinessandFinance"
+		},
+		{
+			"path": "../../../../../OneDrive/SimpleInfoapps/LogoGFx"
+		},
+		{
+			"path": "../../../fahadTheTechIdea/MyWebSite/TheTechIdeaWeb"
+		},
+		{
+			"path": "H:/dev/iconPacks/AI"
+		},
+		{
+			"path": "../../Beep.AI.Server"
+		},
+		{
+			"path": "../../Beep.AI.Community"
+		},
+		{
+			"path": "H:/dev/iconPacks/imgs"
+		}
+	],
+	"settings": {
+		"powershell.cwd": "Beep.Python.MLStudio"
+	}
+}

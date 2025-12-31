@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}{{ discussion.title }} - {{ branding.app_name if branding else 'Beep.AI.Community' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>
+            {% if discussion.is_pinned %}
+            <i class="bi bi-pin-angle-fill me-2" style="color: var(--theme-warning);"></i>
+            {% endif %}
+            {% if discussion.is_solved %}
+            <i class="bi bi-check-circle-fill me-2" style="color: var(--theme-success);"></i>
+            {% endif %}
+            {{ discussion.title }}
+        </h1>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('discussions.browse') }}" class="btn btn-modern btn-modern-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to Discussions
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-md-8">
+        <!-- Discussion Content -->
+        <div class="card-modern mb-4">
+            <div class="card-modern-header d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ discussion.author or 'Unknown' }}</strong>
+                    <small class="text-muted ms-2">{{ discussion.created_at.strftime('%Y-%m-%d %H:%M:%S') if discussion.created_at else '' }}</small>
+                </div>
+                <div>
+                    {% if user_id == discussion.author_id and not discussion.is_solved %}
+                    <form method="POST" action="{{ url_for('discussions.solve', discussion_id=discussion.id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-modern btn-sm" style="background: var(--theme-success); color: var(--text-on-primary);">
+                            <i class="bi bi-check me-1"></i>Mark as Solved
+                        </button>
+                    </form>
+                    {% endif %}
+                    {% if user_id %}
+                    <form method="POST" action="{{ url_for('discussions.upvote', discussion_id=discussion.id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-modern btn-sm {% if has_upvoted %}btn-modern-primary{% else %}btn-modern-secondary{% endif %}">
+                            <i class="bi bi-hand-thumbs-up me-1"></i>Upvote ({{ discussion.upvote_count or 0 }})
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-modern-body">
+                <div class="mb-3">
+                    {{ discussion.content|safe if discussion.content else 'No content' }}
+                </div>
+                <div class="text-muted">
+                    <small>
+                        <i class="bi bi-chat me-1"></i>{{ discussion.reply_count or 0 }} replies |
+                        <i class="bi bi-hand-thumbs-up me-1"></i>{{ discussion.upvote_count or 0 }} upvotes
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Replies -->
+        <h3>Replies ({{ replies|length if replies else 0 }})</h3>
+        {% if replies %}
+        {% for reply in replies %}
+        <div class="card-modern mb-3">
+            <div class="card-modern-header">
+                <strong>{{ reply.author.username if reply.author else 'Unknown' }}</strong>
+                <small class="text-muted ms-2">{{ reply.created_at.strftime('%Y-%m-%d %H:%M:%S') if reply.created_at else '' }}</small>
+            </div>
+            <div class="card-modern-body">
+                {{ reply.content|safe if reply.content else 'No content' }}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="alert-modern alert-modern-info">
+            <i class="bi bi-info-circle"></i>
+            <div>No replies yet. Be the first to reply!</div>
+        </div>
+        {% endif %}
+
+        <!-- Reply Form -->
+        {% if user_id %}
+        <div class="card-modern mt-4">
+            <div class="card-modern-header">
+                <h5 class="card-modern-title"><i class="bi bi-reply me-2"></i>Add Reply</h5>
+            </div>
+            <div class="card-modern-body">
+                <form method="POST" action="{{ url_for('discussions.reply', discussion_id=discussion.id) }}" class="form-modern">
+                    <div class="mb-3">
+                        <textarea class="form-control" name="content" rows="5" placeholder="Write your reply..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-modern btn-modern-primary">
+                        <i class="bi bi-send me-1"></i>Post Reply
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert-modern alert-modern-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            <div><a href="#" class="alert-link">Login</a> to reply to this discussion.</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <div class="card-modern">
+            <div class="card-modern-header">
+                <h5 class="card-modern-title"><i class="bi bi-info-circle me-2"></i>Discussion Info</h5>
+            </div>
+            <div class="card-modern-body">
+                <ul class="list-group-modern list-group-flush">
+                    <li class="list-group-item-modern">
+                        <strong>Author:</strong> {{ discussion.author or 'Unknown' }}
+                    </li>
+                    <li class="list-group-item-modern">
+                        <strong>Created:</strong> {{ discussion.created_at.strftime('%Y-%m-%d %H:%M:%S') if discussion.created_at else '-' }}
+                    </li>
+                    {% if discussion.topic_type %}
+                    <li class="list-group-item-modern">
+                        <strong>Topic:</strong> {{ discussion.topic_type|title }}
+                        {% if discussion.topic_id %}
+                        (ID: {{ discussion.topic_id }})
+                        {% endif %}
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

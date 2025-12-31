@@ -1,0 +1,23 @@
+{
+  "database_uri": "sqlite:///mlstudio.db",
+  "community_connection": {
+    "url": "http://127.0.0.1:5001",
+    "enabled": true,
+    "api_key": "",
+    "timeout": 30
+  },
+  "microsoft_sso": {
+    "enabled": false,
+    "client_id": "",
+    "client_secret": "",
+    "tenant_id": "",
+    "redirect_uri": "http://127.0.0.1:5000/auth/microsoft/callback"
+  },
+  "koc_branding": {
+    "enabled": true,
+    "primary_color": "#003366",
+    "secondary_color": "#FFD700",
+    "logo_path": "static/images/branding/koc_logo.png"
+  }
+}
+

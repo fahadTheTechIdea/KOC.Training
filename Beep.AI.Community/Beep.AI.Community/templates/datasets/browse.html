@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Data - {{ branding.app_name if branding else 'Beep.AI.Community' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="bi bi-database" style="color: var(--theme-primary);"></i> Browse Shared Data</h1>
+        <p class="text-muted">Discover datasets shared by the community</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('datasets.upload') }}" class="btn btn-modern btn-modern-primary">
+            <i class="bi bi-upload me-1"></i>Share Your Data
+        </a>
+    </div>
+</div>
+
+<div class="card-modern mb-4">
+    <div class="card-modern-body">
+        <form method="GET" action="{{ url_for('datasets.browse') }}" class="form-modern">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <input type="text" class="form-control" name="search" placeholder="Search datasets..." value="{{ search }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <select class="form-select" name="category">
+                        <option value="">All Categories</option>
+                        <option value="Sales" {% if category == 'Sales' %}selected{% endif %}>Sales</option>
+                        <option value="Weather" {% if category == 'Weather' %}selected{% endif %}>Weather</option>
+                        <option value="Images" {% if category == 'Images' %}selected{% endif %}>Images</option>
+                        <option value="Business" {% if category == 'Business' %}selected{% endif %}>Business</option>
+                    </select>
+                </div>
+                <div class="col-md-2 mb-3">
+                    <button type="submit" class="btn btn-modern btn-modern-primary w-100">
+                        <i class="bi bi-search me-1"></i>Search
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if datasets %}
+<div class="row">
+    {% for dataset in datasets %}
+    <div class="col-md-4 mb-4">
+        <div class="card-modern h-100">
+            <div class="card-modern-body">
+                <h5 class="card-modern-title">
+                    <i class="bi bi-file-earmark-text" style="color: var(--theme-primary);"></i>
+                    {{ dataset.title }}
+                </h5>
+                <p class="card-text text-muted">
+                    {{ dataset.description[:100] if dataset.description else 'No description' }}...
+                </p>
+                <div class="mb-2">
+                    <small class="text-muted">
+                        <i class="bi bi-person me-1"></i>{{ dataset.owner or 'Unknown' }} |
+                        <i class="bi bi-download me-1"></i>{{ dataset.download_count }} |
+                        <i class="bi bi-eye me-1"></i>{{ dataset.view_count }}
+                    </small>
+                </div>
+                <div class="mb-2">
+                    {% if dataset.category %}
+                    <span class="badge-modern badge-modern-secondary">{{ dataset.category }}</span>
+                    {% endif %}
+                    <span class="badge-modern badge-modern-info">{{ dataset.file_format|upper }}</span>
+                    <span class="badge-modern badge-modern-light">{{ format_file_size(dataset.file_size) }}</span>
+                </div>
+                <a href="{{ url_for('datasets.detail', dataset_id=dataset.id) }}" class="btn btn-modern btn-modern-primary btn-sm">
+                    <i class="bi bi-eye me-1"></i>View Details
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if total > 20 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if page > 1 %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page - 1 }}{% if search %}&search={{ search }}{% endif %}{% if category %}&category={{ category }}{% endif %}">Previous</a>
+        </li>
+        {% endif %}
+        <li class="page-item active">
+            <span class="page-link">Page {{ page }}</span>
+        </li>
+        {% if page * 20 < total %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page + 1 }}{% if search %}&search={{ search }}{% endif %}{% if category %}&category={{ category }}{% endif %}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="alert-modern alert-modern-info">
+    <i class="bi bi-info-circle"></i>
+    <div>
+        <h5>No datasets found</h5>
+        <p>Be the first to share your data!</p>
+        <a href="{{ url_for('datasets.upload') }}" class="btn btn-modern btn-modern-primary">Upload Dataset</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,1265 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Beep ML Studio{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Industry Mode Selector - Terminal Style */
+    .industry-selector {
+        background: var(--bg-surface);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-md);
+        font-family: var(--font-mono);
+    }
+    
+    .industry-selector-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .industry-selector-header h5 {
+        margin: 0;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .industry-cards-scroll {
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        scroll-behavior: smooth;
+    }
+    
+    .industry-cards-scroll::-webkit-scrollbar {
+        height: 6px;
+    }
+    
+    .industry-cards-scroll::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+        border-radius: 3px;
+    }
+    
+    .industry-cards-scroll::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 3px;
+    }
+    
+    .industry-card {
+        flex: 0 0 260px;
+        background: var(--bg-surface);
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.25rem;
+        cursor: pointer;
+        transition: all var(--transition-duration) var(--transition-easing);
+        position: relative;
+        font-family: var(--font-mono);
+    }
+    
+    .industry-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0 15px var(--theme-primary-transparent);
+        border-color: var(--theme-primary);
+    }
+    
+    .industry-card.active {
+        border-color: var(--theme-primary);
+        background: var(--bg-surface-elevated);
+        box-shadow: 0 0 20px var(--theme-primary-transparent);
+    }
+    
+    .industry-card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .industry-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .industry-card-title {
+        flex: 1;
+    }
+    
+    .industry-card-title h6 {
+        margin: 0 0 0.25rem 0;
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--text-primary);
+        font-family: var(--font-heading);
+    }
+    
+    .industry-card-title small {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        font-family: var(--font-mono);
+    }
+    
+    .industry-card p {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.75rem;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        font-family: var(--font-mono);
+    }
+    
+    .industry-scenarios {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+    
+    .scenario-tag {
+        background: var(--bg-surface-elevated);
+        border: 1px solid var(--border-color);
+        padding: 0.2rem 0.5rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        font-family: var(--font-mono);
+    }
+    
+    .current-badge {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        background: var(--theme-primary);
+        color: var(--text-on-primary);
+        padding: 0.15rem 0.5rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.65rem;
+        font-weight: 600;
+        font-family: var(--font-mono);
+        box-shadow: 0 0 10px var(--theme-primary-transparent);
+    }
+    
+    .scenario-count-badge {
+        position: absolute;
+        bottom: 0.75rem;
+        right: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        font-family: var(--font-mono);
+    }
+    
+    /* Industry-specific colors - Use theme variables */
+    .industry-card[data-mode="advanced"] .industry-icon { background: linear-gradient(135deg, var(--text-secondary) 0%, var(--border-color) 100%); }
+    .industry-card[data-mode="finance"] .industry-icon { background: linear-gradient(135deg, var(--theme-info) 0%, var(--theme-secondary) 100%); }
+    .industry-card[data-mode="petroleum"] .industry-icon { background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-success) 100%); }
+    .industry-card[data-mode="healthcare"] .industry-icon { background: linear-gradient(135deg, var(--theme-tertiary) 0%, var(--theme-primary) 100%); }
+    .industry-card[data-mode="manufacturing"] .industry-icon { background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-info) 100%); }
+    
+    .industry-card[data-mode="advanced"].active { border-color: var(--text-secondary); }
+    .industry-card[data-mode="finance"].active { border-color: var(--theme-info); }
+    .industry-card[data-mode="petroleum"].active { border-color: var(--theme-primary); }
+    .industry-card[data-mode="healthcare"].active { border-color: var(--theme-tertiary); }
+    .industry-card[data-mode="manufacturing"].active { border-color: var(--theme-primary); }
+
+    /* Welcome Banner - Terminal Style */
+    .welcome-banner {
+        /* Always use terminal theme colors, not industry-specific colors */
+        background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+        color: var(--text-on-primary);
+        padding: 2rem 2rem;
+        border-radius: var(--radius-lg);
+        margin-bottom: 1.5rem;
+        box-shadow: 0 0 30px var(--theme-primary-transparent), var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--theme-primary);
+        font-family: var(--font-mono);
+    }
+    
+    .welcome-banner::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: var(--theme-primary-transparent);
+        border-radius: 50%;
+    }
+    
+    .welcome-banner::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        right: 10%;
+        width: 200px;
+        height: 200px;
+        background: var(--theme-primary-transparent);
+        border-radius: 50%;
+    }
+    
+    .welcome-banner-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .current-mode-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--theme-primary-transparent);
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Stats Cards - Using component library */
+    /* Project Cards - Using component library */
+    
+    /* Competition Available Cards - Using component library */
+    
+    /* Quick Actions - Using component library */
+    .quick-actions {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .quick-action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        transition: all var(--transition-duration) var(--transition-easing);
+        text-decoration: none;
+        height: 100%;
+        min-height: 80px;
+        background: var(--bg-surface-elevated);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        font-family: var(--font-mono);
+    }
+    
+    .quick-action-btn:hover {
+        background: var(--bg-surface);
+        border-color: var(--theme-primary);
+        color: var(--theme-primary);
+        box-shadow: 0 0 10px var(--theme-primary-transparent);
+        transform: translateY(-2px);
+    }
+    
+    .quick-action-btn i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .quick-action-btn span {
+        font-size: 0.85rem;
+        text-align: center;
+    }
+    
+    /* Scenarios Section - Using component library */
+    .scenarios-section {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .scenario-card {
+        background: var(--bg-surface-elevated);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        cursor: pointer;
+        transition: all var(--transition-duration) var(--transition-easing);
+        height: 100%;
+        font-family: var(--font-mono);
+    }
+    
+    .scenario-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 15px var(--theme-primary-transparent);
+        border-color: var(--theme-primary);
+        background: var(--bg-surface);
+    }
+    
+    .scenario-card h6 {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-family: var(--font-heading);
+    }
+    
+    .scenario-card p {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-bottom: 0;
+        font-family: var(--font-mono);
+    }
+    
+    /* Terminal-style headings in dashboard */
+    .welcome-banner h2 {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        color: var(--text-on-primary);
+        text-shadow: var(--shadow-sm);
+    }
+    
+    .welcome-banner p, .welcome-banner small {
+        font-family: var(--font-mono);
+    }
+    
+    /* Section headers */
+    h5 {
+        font-family: var(--font-heading);
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    /* Terminal-style stats - using component library classes */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+        <div class="welcome-banner-content">
+            <div class="d-flex align-items-center mb-2">
+                <img src="{{ url_for('static', filename='images/branding/beep-mlstudio-logo.png') }}" 
+                     alt="Beep ML Studio" 
+                     height="40" 
+                     width="40"
+                     class="me-3 app-logo"
+                     style="object-fit: contain;">
+                <div>
+                    <div class="current-mode-badge mb-1">
+                        {% if current_profile %}
+                        <i class="{{ current_profile.icon }}"></i>
+                        {{ current_profile.name }} Mode
+                        {% else %}
+                        <i class="bi bi-cpu"></i>
+                        Advanced Mode
+                        {% endif %}
+                    </div>
+                    <h2 class="mb-0">Welcome to Beep ML Studio</h2>
+                </div>
+            </div>
+            <p class="mb-0 opacity-75">
+                {% if current_profile and current_profile.id != 'advanced' %}
+                {{ current_profile.description }}
+                {% else %}
+                Create, train, and manage your Machine Learning models with ease
+                {% endif %}
+            </p>
+            <small class="opacity-50">by TheTechIdea</small>
+        </div>
+    </div>
+    
+    <!-- Industry Mode Selector -->
+    <div class="industry-selector">
+        <div class="industry-selector-header">
+            <h5><i class="bi bi-grid-3x3-gap me-2"></i>
+                {% if forced_industry %}
+                Current Industry Mode
+                {% else %}
+                Choose Your Industry Mode
+                {% endif %}
+            </h5>
+            <small class="text-muted">
+                {% if forced_industry %}
+                Industry mode is locked to {{ current_profile.name if current_profile else forced_industry|title }}
+                {% else %}
+                Get tailored workflows and domain-specific terminology
+                {% endif %}
+            </small>
+        </div>
+        <div class="industry-cards-scroll">
+            {% for profile in profiles %}
+            {% if not forced_industry or profile.id == current_mode %}
+            <form action="{{ url_for('industry.set_mode', profile_id=profile.id) }}" method="POST" style="display: contents;">
+                <div class="industry-card {% if current_mode == profile.id %}active{% endif %} {% if forced_industry and profile.id != current_mode %}d-none{% endif %}" 
+                     data-mode="{{ profile.id }}"
+                     {% if not forced_industry %}onclick="this.closest('form').submit()"{% endif %}
+                     style="{% if forced_industry and profile.id != current_mode %}display: none;{% endif %}">
+                    
+                    {% if current_mode == profile.id %}
+                    <span class="current-badge">Current</span>
+                    {% endif %}
+                    
+                    <div class="industry-card-header">
+                        <div class="industry-icon">
+                            <i class="{{ profile.icon }}"></i>
+                        </div>
+                        <div class="industry-card-title">
+                            <h6>{{ profile.name }}</h6>
+                            <small>{{ profile.tagline }}</small>
+                        </div>
+                    </div>
+                    
+                    <p>{{ profile.description }}</p>
+                    
+                    {% if profile.scenarios %}
+                    <div class="industry-scenarios">
+                        {% for scenario in profile.scenarios[:3] %}
+                        <span class="scenario-tag">{{ scenario.name }}</span>
+                        {% endfor %}
+                        {% if profile.scenarios|length > 3 %}
+                        <span class="scenario-tag">+{{ profile.scenarios|length - 3 }} more</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="scenario-count-badge">
+                        <i class="bi bi-lightning-charge"></i>
+                        {{ profile.scenarios|length }} scenarios
+                    </div>
+                    {% endif %}
+                </div>
+            </form>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Quick Start Scenarios (if industry mode is selected) -->
+    {% if current_profile and current_profile.scenarios and current_profile.id != 'advanced' %}
+    <div class="scenarios-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="bi bi-lightning-charge me-2"></i>Quick Start Scenarios</h5>
+            <a href="{{ url_for('industry.dashboard', profile_id=current_profile.id) }}" class="btn btn-modern btn-modern-secondary btn-sm">
+                View All <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="row">
+            {% for scenario in current_profile.scenarios[:4] %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="scenario-card" onclick="window.location='{{ url_for('industry.scenario_wizard', profile_id=current_profile.id, scenario_id=scenario.id) }}'">
+                    <h6><i class="bi bi-play-circle me-1"></i>{{ scenario.name }}</h6>
+                    <p>{{ scenario.description[:80] }}{% if scenario.description|length > 80 %}...{% endif %}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stat-card-modern h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Total Projects</div>
+                        <div class="stat-value">{{ projects|length }}</div>
+                    </div>
+                    <div class="text-primary" style="font-size: 2.5rem;">
+                        <i class="bi bi-folder-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stat-card-modern h-100" style="border-left-color: var(--theme-success);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Active Projects</div>
+                        <div class="stat-value" style="color: var(--theme-success);">{{ projects|length }}</div>
+                    </div>
+                    <div class="text-success" style="font-size: 2.5rem;">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stat-card-modern h-100" style="border-left-color: var(--theme-warning);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Total Experiments</div>
+                        <div class="stat-value" style="color: var(--theme-warning);">
+                            {% set total_experiments = projects|sum(attribute='experiments_count') %}
+                            {{ total_experiments }}
+                        </div>
+                    </div>
+                    <div class="text-warning" style="font-size: 2.5rem;">
+                        <i class="bi bi-flask"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="stat-card-modern h-100" style="border-left-color: var(--theme-error);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Frameworks</div>
+                        <div class="stat-value" style="color: var(--theme-error);">
+                            {% set frameworks = projects|map(attribute='framework')|list|unique|list|length %}
+                            {{ frameworks }}
+                        </div>
+                    </div>
+                    <div class="text-danger" style="font-size: 2.5rem;">
+                        <i class="bi bi-stack"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Community Connection Status -->
+    {% if community_config %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card {% if community_config.connected %}border-success{% else %}border-warning{% endif %}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">
+                                <i class="bi bi-{% if community_config.connected %}check-circle-fill text-success{% else %}exclamation-triangle-fill text-warning{% endif %}"></i>
+                                Community Platform
+                            </h5>
+                            <p class="mb-0 text-muted">
+                                {% if community_config.connected %}
+                                Connected to {{ community_config.url }}
+                                {% else %}
+                                Not connected to Community server
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            {% if not community_config.connected %}
+                            <a href="{{ url_for('settings.index') }}" class="btn btn-modern btn-modern-secondary btn-sm">
+                                <i class="bi bi-plug me-1"></i>Connect
+                            </a>
+                            {% else %}
+                            <a href="{{ community_config.url }}" target="_blank" class="btn btn-modern btn-modern-secondary btn-sm me-2">
+                                <i class="bi bi-box-arrow-up-right me-1"></i>Open Community
+                            </a>
+                            <a href="{{ url_for('settings.index') }}" class="btn btn-modern btn-modern-secondary btn-sm">
+                                <i class="bi bi-gear me-1"></i>Settings
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Available Competitions -->
+    {% if community_config.connected %}
+    <div class="row mb-4" id="competitions-section">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-trophy"></i> Available Competitions</h5>
+                    <a href="{{ community_config.url }}" target="_blank" class="btn btn-modern btn-modern-secondary btn-sm">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Browse All
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div id="competitions-list" class="row">
+                        <div class="col-12 text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading competitions...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Loading competitions...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Community Participation Data -->
+    {% if community_config.connected and community_data %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-trophy"></i> Competition Participation</h5>
+                    <a href="{{ community_data.community_url if community_data else community_config.url }}" target="_blank" class="btn btn-modern btn-modern-secondary btn-sm">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Open Community
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- Quick Stats -->
+                    {% if community_data.stats %}
+                    <div class="row mb-4">
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <h3 class="text-primary mb-0">{{ community_data.stats.total_competitions_joined or 0 }}</h3>
+                                <small class="text-muted">Competitions Joined</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <h3 class="text-success mb-0">{{ community_data.stats.active_competitions or 0 }}</h3>
+                                <small class="text-muted">Active Competitions</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <h3 class="text-warning mb-0">{{ community_data.stats.total_submissions or 0 }}</h3>
+                                <small class="text-muted">Total Submissions</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <h3 class="text-info mb-0">{% if community_data.stats.best_rank %}#{{ community_data.stats.best_rank }}{% else %}N/A{% endif %}</h3>
+                                <small class="text-muted">Best Ranking</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Competition Cards -->
+                    {% if community_data.competitions and community_data.competitions|length > 0 %}
+                    <hr>
+                    <h6 class="mb-3"><i class="bi bi-trophy-fill"></i> Your Competitions</h6>
+                    <div class="row">
+                        {% for comp in community_data.competitions %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100 competition-card {% if comp.is_active %}border-success{% else %}border-secondary{% endif %}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0 flex-grow-1">{{ comp.title }}</h6>
+                                        {% if comp.is_active %}
+                                        <span class="badge bg-success ms-2">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary ms-2">Ended</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <p class="card-text small text-muted mb-3" style="min-height: 40px;">
+                                        {{ comp.description[:80] if comp.description else 'No description' }}{% if comp.description and comp.description|length > 80 %}...{% endif %}
+                                    </p>
+                                    
+                                    <!-- Rank and Score -->
+                                    {% if comp.rank %}
+                                    <div class="mb-2">
+                                        <span class="badge bg-primary" style="font-size: 0.9rem;">
+                                            <i class="bi bi-trophy"></i> Rank #{{ comp.rank }}
+                                            {% if comp.user_ranking and comp.user_ranking.total_participants %}
+                                            of {{ comp.user_ranking.total_participants }}
+                                            {% endif %}
+                                        </span>
+                                        {% if comp.best_score is not none %}
+                                        <span class="badge bg-info ms-1" style="font-size: 0.9rem;">
+                                            Score: {{ "%.4f"|format(comp.best_score) }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <!-- Submission Info -->
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="bi bi-upload"></i> {{ comp.submission_count or 0 }} submission{{ 's' if (comp.submission_count or 0) != 1 else '' }}
+                                            {% if comp.max_total_submissions %}
+                                            / {{ comp.max_total_submissions }} max
+                                            {% endif %}
+                                        </small>
+                                        {% if comp.max_total_submissions and comp.submission_count %}
+                                        <div class="progress" style="height: 6px; margin-top: 4px;">
+                                            {% set progress = ((comp.submission_count / comp.max_total_submissions) * 100)|int %}
+                                            <div class="progress-bar {% if progress >= 90 %}bg-warning{% else %}bg-primary{% endif %}" 
+                                                 role="progressbar" style="width: {{ progress }}%"></div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Deadline -->
+                                    {% if comp.end_date %}
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar"></i> 
+                                            {% if comp.is_active %}
+                                            Ends: <span class="competition-deadline" data-end-date="{{ comp.end_date }}">{{ comp.end_date[:10] if comp.end_date else 'N/A' }}</span>
+                                            {% else %}
+                                            Ended: {{ comp.end_date[:10] if comp.end_date else 'N/A' }}
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <!-- Participants -->
+                                    {% if comp.participant_count %}
+                                    <div class="mb-3">
+                                        <small class="text-muted">
+                                            <i class="bi bi-people"></i> {{ comp.participant_count }} participant{{ 's' if comp.participant_count != 1 else '' }}
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-modern btn-modern-secondary btn-sm flex-grow-1" 
+                                                onclick='showCompetitionDetails({{ comp|tojson }})'>
+                                            <i class="bi bi-info-circle me-1"></i>Details
+                                        </button>
+                                        <a href="{{ community_config.url }}/competitions/{{ comp.id }}" 
+                                           target="_blank" 
+                                           class="btn btn-modern btn-modern-primary btn-sm">
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-inbox" style="font-size: 3rem; color: var(--text-secondary);"></i>
+                        <p class="text-muted mt-3">No competitions yet. Join a competition in Community to see your participation status here!</p>
+                        <a href="{{ community_config.url }}/competitions" target="_blank" class="btn btn-modern btn-modern-primary">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Browse Competitions
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+<!-- Competition Details Modal -->
+<div class="modal fade modal-modern" id="competitionDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-trophy"></i> Competition Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="competitionDetailsContent">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-modern btn-modern-secondary" data-bs-dismiss="modal">Close</button>
+                    <a id="competitionDetailsLink" href="#" target="_blank" class="btn btn-modern btn-modern-primary">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Open in Community
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="quick-actions">
+                <h5 class="mb-3"><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <a href="/projects/create" class="btn btn-modern btn-modern-primary w-100 quick-action-btn" id="createProjectBtn">
+                            <i class="bi bi-plus-circle"></i>
+                            <span>Create Project</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <button class="btn btn-modern btn-modern-secondary w-100 quick-action-btn" onclick="showQuickStart()">
+                            <i class="bi bi-question-circle"></i>
+                            <span>Quick Start Guide</span>
+                        </button>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <a href="{{ url_for('projects.index') }}" class="btn btn-modern btn-modern-secondary w-100 quick-action-btn">
+                            <i class="bi bi-folder"></i>
+                            <span>View All Projects</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <a href="{{ url_for('settings.index') }}" class="btn btn-modern btn-modern-secondary w-100 quick-action-btn">
+                            <i class="bi bi-gear"></i>
+                            <span>Settings</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Projects Grid -->
+    {% if projects %}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4><i class="bi bi-folder-fill me-2"></i>Your Projects</h4>
+                <a href="{{ url_for('projects.index') }}" class="btn btn-modern btn-modern-secondary btn-sm">
+                    View All <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        {% for project in projects[:6] %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card-modern h-100" style="cursor: pointer;" onclick="window.location='{{ url_for('projects.detail', project_id=project.id) }}'">
+                <div class="card-modern-header">
+                    <h5 class="card-modern-title mb-0">
+                        <i class="bi bi-folder-fill text-primary me-2"></i>{{ project.name }}
+                    </h5>
+                    <span class="badge-modern badge-modern-secondary">{{ project.framework or 'Custom' }}</span>
+                </div>
+                <div class="card-modern-body">
+                    <p class="mb-3">{{ project.description or 'No description' }}</p>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar me-1"></i>{{ project.created_at.strftime('%Y-%m-%d') }}
+                        </small>
+                        <span class="badge-modern badge-modern-info">{{ project.experiments_count }} experiments</span>
+                    </div>
+                    {% if project.industry_profile %}
+                    <div class="mt-2">
+                        <span class="badge-modern badge-modern-secondary">
+                            <i class="bi bi-building me-1"></i>{{ project.industry_profile }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 5rem; color: var(--text-secondary);"></i>
+            <h3 class="mt-3">No Projects Yet</h3>
+            <p class="text-muted mb-4">
+                {% if current_profile and current_profile.id != 'advanced' %}
+                Start with a {{ current_profile.name }} scenario or create a custom project!
+                {% else %}
+                Create your first ML project to get started with MLStudio!
+                {% endif %}
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                {% if current_profile and current_profile.scenarios and current_profile.id != 'advanced' %}
+                <a href="{{ url_for('industry.dashboard', profile_id=current_profile.id) }}" class="btn btn-modern btn-modern-secondary btn-lg">
+                    <i class="bi bi-lightning-charge me-1"></i>Browse Scenarios
+                </a>
+                {% endif %}
+                <a href="/projects/create" class="btn btn-modern btn-modern-primary btn-lg">
+                    <i class="bi bi-plus-circle me-1"></i>Create Project
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Start Modal -->
+<div class="modal fade modal-modern" id="quickStartModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-question-circle"></i> Quick Start Guide</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% if current_profile and current_profile.id != 'advanced' %}
+                <div class="alert alert-info">
+                    <strong><i class="{{ current_profile.icon }} me-1"></i>{{ current_profile.name }} Mode</strong><br>
+                    You're using industry-specific workflows. Start with a pre-built scenario for faster results!
+                </div>
+                {% endif %}
+                
+                <h6>1. Choose Your Approach</h6>
+                <p>Use a <strong>Quick Start Scenario</strong> for guided workflows, or <strong>Create a Project</strong> for full control.</p>
+                
+                <h6 class="mt-4">2. Upload Your Dataset</h6>
+                <p>Upload your training data (CSV, JSON, or Excel files) in the Project Info tab</p>
+                
+                <h6 class="mt-4">3. Build Your Workflow</h6>
+                <p>Use the visual Workflow Builder to design your ML pipeline, or write custom Python scripts.</p>
+                
+                <h6 class="mt-4">4. Train & Evaluate</h6>
+                <p>Run your workflow and monitor progress in real-time. View metrics and results!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-modern btn-modern-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="/projects/create" class="btn btn-modern btn-modern-primary">Create Project Now</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showQuickStart() {
+        const modal = new bootstrap.Modal(document.getElementById('quickStartModal'));
+        modal.show();
+    }
+    
+    // Competition details modal
+    function showCompetitionDetails(comp) {
+        const modal = new bootstrap.Modal(document.getElementById('competitionDetailsModal'));
+        const content = document.getElementById('competitionDetailsContent');
+        const link = document.getElementById('competitionDetailsLink');
+        
+        // Build modal content
+        let html = '<div class="competition-details">';
+        
+        // Title and status
+        html += `<h5>${escapeHtml(comp.title)}</h5>`;
+        html += `<p class="text-muted">${escapeHtml(comp.description || 'No description')}</p>`;
+        
+        // Status badge
+        if (comp.is_active) {
+            html += '<span class="badge bg-success mb-3">Active Competition</span>';
+        } else {
+            html += '<span class="badge bg-secondary mb-3">Ended</span>';
+        }
+        
+        html += '<hr>';
+        
+        // User's performance
+        html += '<h6><i class="bi bi-person-check"></i> Your Performance</h6>';
+        html += '<div class="row mb-3">';
+        
+        if (comp.rank) {
+            html += `<div class="col-md-4">
+                <div class="text-center p-2 bg-light rounded">
+                    <div class="h4 text-primary mb-0">#${comp.rank}</div>
+                    <small class="text-muted">Rank</small>
+                </div>
+            </div>`;
+        }
+        
+        if (comp.best_score !== null && comp.best_score !== undefined) {
+            html += `<div class="col-md-4">
+                <div class="text-center p-2 bg-light rounded">
+                    <div class="h4 text-info mb-0">${parseFloat(comp.best_score).toFixed(4)}</div>
+                    <small class="text-muted">Best Score</small>
+                </div>
+            </div>`;
+        }
+        
+        html += `<div class="col-md-4">
+            <div class="text-center p-2 bg-light rounded">
+                <div class="h4 text-warning mb-0">${comp.submission_count || 0}</div>
+                <small class="text-muted">Submissions</small>
+            </div>
+        </div>`;
+        
+        html += '</div>';
+        
+        // Competition info
+        html += '<hr><h6><i class="bi bi-info-circle"></i> Competition Information</h6>';
+        html += '<dl class="row">';
+        
+        if (comp.evaluation_metric) {
+            html += `<dt class="col-sm-4">Evaluation Metric:</dt><dd class="col-sm-8">${escapeHtml(comp.evaluation_metric)}</dd>`;
+        }
+        
+        if (comp.start_date) {
+            html += `<dt class="col-sm-4">Start Date:</dt><dd class="col-sm-8">${formatDate(comp.start_date)}</dd>`;
+        }
+        
+        if (comp.end_date) {
+            html += `<dt class="col-sm-4">End Date:</dt><dd class="col-sm-8">${formatDate(comp.end_date)}${comp.is_active ? ` <small class="text-muted">(${formatTimeRemaining(comp.end_date)})</small>` : ''}</dd>`;
+        }
+        
+        if (comp.max_submissions_per_day) {
+            html += `<dt class="col-sm-4">Max per Day:</dt><dd class="col-sm-8">${comp.max_submissions_per_day}</dd>`;
+        }
+        
+        if (comp.max_total_submissions) {
+            html += `<dt class="col-sm-4">Max Total:</dt><dd class="col-sm-8">${comp.max_total_submissions}</dd>`;
+        }
+        
+        if (comp.participant_count) {
+            html += `<dt class="col-sm-4">Participants:</dt><dd class="col-sm-8">${comp.participant_count}</dd>`;
+        }
+        
+        html += '</dl>';
+        
+        // Submission history
+        if (comp.submissions && comp.submissions.length > 0) {
+            html += '<hr><h6><i class="bi bi-clock-history"></i> Submission History</h6>';
+            html += '<div class="table-responsive"><table class="table table-sm">';
+            html += '<thead><tr><th>Date</th><th>Score</th><th>Status</th></tr></thead><tbody>';
+            
+            // Sort submissions by date (newest first)
+            const sortedSubs = [...comp.submissions].sort((a, b) => {
+                return new Date(b.submitted_at || 0) - new Date(a.submitted_at || 0);
+            });
+            
+            sortedSubs.forEach(sub => {
+                html += '<tr>';
+                html += `<td>${formatDate(sub.submitted_at)}</td>`;
+                html += `<td>${sub.score !== null && sub.score !== undefined ? parseFloat(sub.score).toFixed(4) : 'Pending'}</td>`;
+                html += `<td><span class="badge ${sub.status === 'evaluated' ? 'bg-success' : 'bg-warning'}">${escapeHtml(sub.status || 'Pending')}</span></td>`;
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+        }
+        
+        html += '</div>';
+        
+        content.innerHTML = html;
+        link.href = `{{ community_data.community_url if community_data else community_config.url }}/competitions/${comp.id}`;
+        modal.show();
+    }
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+    
+    function formatDate(dateStr) {
+        if (!dateStr) return 'N/A';
+        try {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+        } catch (e) {
+            return dateStr;
+        }
+    }
+    
+    function formatTimeRemaining(endDateStr) {
+        if (!endDateStr) return '';
+        try {
+            const endDate = new Date(endDateStr);
+            const now = new Date();
+            const diff = endDate - now;
+            
+            if (diff < 0) return 'Ended';
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            if (days > 0) return `${days} day${days !== 1 ? 's' : ''} remaining`;
+            if (hours > 0) return `${hours} hour${hours !== 1 ? 's' : ''} remaining`;
+            return `${minutes} minute${minutes !== 1 ? 's' : ''} remaining`;
+        } catch (e) {
+            return '';
+        }
+    }
+    
+    // Load and display available competitions
+    function loadCompetitions() {
+        const competitionsList = document.getElementById('competitions-list');
+        if (!competitionsList) return;
+        
+        fetch('/api/v1/community/competitions?active_only=true')
+            .then(response => response.json())
+            .then(data => {
+                const competitions = data.competitions || [];
+                
+                if (competitions.length === 0) {
+                    competitionsList.innerHTML = `
+                        <div class="col-12 text-center py-4">
+                            <i class="bi bi-inbox" style="font-size: 3rem; color: var(--text-secondary);"></i>
+                            <p class="mt-3 text-muted">No active competitions available</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                competitions.forEach(comp => {
+                    const isParticipant = comp.is_participant || false;
+                    const participantCount = comp.participant_count || 0;
+                    const endDate = comp.end_date ? formatTimeRemaining(comp.end_date) : '';
+                    
+                    html += `
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card-modern h-100">
+                                <div class="card-modern-header">
+                                    <h6 class="card-modern-title mb-0 flex-grow-1">${escapeHtml(comp.title)}</h6>
+                                    <span class="badge-modern badge-modern-success ms-2">Active</span>
+                                </div>
+                                <div class="card-modern-body">
+                                    <p class="mb-3" style="min-height: 60px;">
+                                        ${escapeHtml((comp.description || 'No description').substring(0, 100))}${comp.description && comp.description.length > 100 ? '...' : ''}
+                                    </p>
+                                    
+                                    <div class="mb-3">
+                                        <small class="text-muted">
+                                            <i class="bi bi-people me-1"></i>${participantCount} participants
+                                            ${endDate ? `<br><i class="bi bi-clock me-1"></i>${endDate}` : ''}
+                                        </small>
+                                    </div>
+                                    
+                                    ${isParticipant 
+                                        ? `<button class="btn btn-modern btn-modern-primary btn-sm w-100" onclick="createProjectFromCompetition(${comp.id})">
+                                            <i class="bi bi-folder-plus me-1"></i>Create Project
+                                           </button>`
+                                        : `<button class="btn btn-modern btn-modern-primary btn-sm w-100" onclick="joinCompetition(${comp.id})">
+                                            <i class="bi bi-plus-circle me-1"></i>Join Competition
+                                           </button>`
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                competitionsList.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error loading competitions:', error);
+                competitionsList.innerHTML = `
+                    <div class="col-12 text-center py-4">
+                        <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                        <p class="mt-3 text-muted">Failed to load competitions. Please check your Community connection.</p>
+                    </div>
+                `;
+            });
+    }
+    
+    // Join competition and create project
+    async function joinCompetition(competitionId) {
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Joining...';
+        
+        try {
+            // Join competition
+            const joinResponse = await fetch(`/api/v1/community/competitions/${competitionId}/join`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const joinResult = await joinResponse.json();
+            
+            if (!joinResult.success) {
+                alert('Failed to join competition: ' + (joinResult.error || 'Unknown error'));
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                return;
+            }
+            
+            // Create project automatically
+            const projectResponse = await fetch('/api/v1/projects/create-from-competition', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ competition_id: competitionId })
+            });
+            
+            const projectResult = await projectResponse.json();
+            
+            if (projectResult.success) {
+                // Redirect to new project
+                window.location.href = `/projects/${projectResult.data.id}`;
+            } else {
+                alert('Failed to create project: ' + (projectResult.error || 'Unknown error'));
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                // Reload competitions to update UI
+                loadCompetitions();
+            }
+        } catch (error) {
+            console.error('Error joining competition:', error);
+            alert('Error joining competition: ' + error.message);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+    
+    // Create project from competition (if already joined)
+    async function createProjectFromCompetition(competitionId) {
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+        
+        try {
+            const projectResponse = await fetch('/api/v1/projects/create-from-competition', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ competition_id: competitionId })
+            });
+            
+            const projectResult = await projectResponse.json();
+            
+            if (projectResult.success) {
+                // Redirect to new project
+                window.location.href = `/projects/${projectResult.data.id}`;
+            } else {
+                alert('Failed to create project: ' + (projectResult.error || 'Unknown error'));
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        } catch (error) {
+            console.error('Error creating project:', error);
+            alert('Error creating project: ' + error.message);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+    
+    
+    // Update deadline displays with relative time
+    document.addEventListener('DOMContentLoaded', function() {
+        const deadlineElements = document.querySelectorAll('.competition-deadline');
+        deadlineElements.forEach(el => {
+            const endDate = el.getAttribute('data-end-date');
+            if (endDate) {
+                const timeRemaining = formatTimeRemaining(endDate);
+                if (timeRemaining) {
+                    el.title = timeRemaining;
+                }
+            }
+        });
+        
+        // Ensure create project button works
+        const createProjectBtn = document.getElementById('createProjectBtn');
+        if (createProjectBtn) {
+            createProjectBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = '/projects/create';
+            });
+        }
+        
+        // Also handle other create project links
+        const createProjectLinks = document.querySelectorAll('a[href*="/projects/create"]');
+        createProjectLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = '/projects/create';
+            });
+        });
+    });
+</script>
+{% endblock %}

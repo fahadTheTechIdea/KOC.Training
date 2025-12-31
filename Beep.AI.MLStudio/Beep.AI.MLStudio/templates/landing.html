@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block title %}Beep ML Studio - Machine Learning Made Simple{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Landing Page Styles */
+    .landing-hero {
+        background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+        color: var(--text-on-primary);
+        padding: 6rem 0 4rem;
+        position: relative;
+        overflow: hidden;
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+    }
+    
+    .landing-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 600px;
+        height: 600px;
+        background: var(--theme-primary-transparent);
+        border-radius: 50%;
+        opacity: 0.3;
+    }
+    
+    .landing-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -5%;
+        width: 400px;
+        height: 400px;
+        background: var(--theme-primary-transparent);
+        border-radius: 50%;
+        opacity: 0.2;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    
+    .hero-subtitle {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+        opacity: 0.95;
+        font-weight: 300;
+    }
+    
+    .hero-cta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .feature-section {
+        padding: 5rem 0;
+        background: var(--bg-primary);
+    }
+    
+    .feature-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        height: 100%;
+        transition: all var(--transition-duration) var(--transition-easing);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--theme-primary);
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        font-size: 2.5rem;
+        color: var(--text-on-primary);
+    }
+    
+    .feature-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+    
+    .feature-description {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+    
+    .stats-section {
+        background: var(--bg-surface);
+        padding: 4rem 0;
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1.5rem;
+    }
+    
+    .stat-value {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--theme-primary);
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+    }
+    
+    .cta-section {
+        background: linear-gradient(135deg, var(--bg-surface-elevated) 0%, var(--bg-surface) 100%);
+        padding: 5rem 0;
+        text-align: center;
+    }
+    
+    .cta-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+    
+    .cta-description {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+    }
+    
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+        }
+        
+        .feature-section {
+            padding: 3rem 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="landing-hero">
+    <div class="container">
+        <div class="hero-content">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="hero-title">
+                        <i class="bi bi-cpu-fill me-3"></i>
+                        Machine Learning Made Simple
+                    </h1>
+                    <p class="hero-subtitle">
+                        Build, train, and deploy ML models with our intuitive visual workflow builder. 
+                        No coding required, but full Python support when you need it.
+                    </p>
+                    <div class="hero-cta">
+                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-light btn-lg">
+                            <i class="bi bi-rocket-takeoff"></i> Get Started
+                        </a>
+                        <a href="#features" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-info-circle"></i> Learn More
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center mt-4 mt-lg-0">
+                    <img src="{{ url_for('static', filename='images/features/ai-ml/general/022-brain.png') }}" 
+                         alt="AI Brain" 
+                         class="img-fluid"
+                         style="max-width: 400px; opacity: 0.9;">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="feature-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-4 mb-3">Powerful Features</h2>
+            <p class="lead text-muted">Everything you need to build and deploy machine learning models</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-diagram-3"></i>
+                    </div>
+                    <h3 class="feature-title">Visual Workflow Builder</h3>
+                    <p class="feature-description">
+                        Design your ML pipeline visually with drag-and-drop nodes. 
+                        No coding required, but export to Python when needed.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <h3 class="feature-title">Experiment Tracking</h3>
+                    <p class="feature-description">
+                        Track all your experiments, compare models, and analyze results 
+                        with comprehensive metrics and visualizations.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <h3 class="feature-title">AutoML Capabilities</h3>
+                    <p class="feature-description">
+                        Let AI help you find the best model architecture and hyperparameters 
+                        for your specific use case.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h3 class="feature-title">Industry Templates</h3>
+                    <p class="feature-description">
+                        Pre-built workflows for Oil & Gas, Healthcare, Finance, and more. 
+                        Get started faster with domain-specific templates.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-cloud-upload"></i>
+                    </div>
+                    <h3 class="feature-title">Publish to Community</h3>
+                    <p class="feature-description">
+                        Share your models and compete in challenges. 
+                        Collaborate with the community and showcase your work.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-code-slash"></i>
+                    </div>
+                    <h3 class="feature-title">Full Python Support</h3>
+                    <p class="feature-description">
+                        Write custom code when you need it. Full support for scikit-learn, 
+                        TensorFlow, PyTorch, and more.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-value">100+</div>
+                    <div class="stat-label">ML Algorithms</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-value">50+</div>
+                    <div class="stat-label">Industry Scenarios</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-value">10+</div>
+                    <div class="stat-label">Supported Frameworks</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-item">
+                    <div class="stat-value">∞</div>
+                    <div class="stat-label">Possibilities</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <h2 class="cta-title">Ready to Get Started?</h2>
+        <p class="cta-description">
+            Join thousands of data scientists and ML engineers building amazing models with Beep ML Studio
+        </p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-rocket-takeoff"></i> Start Building
+            </a>
+            <a href="#features" class="btn btn-outline-primary btn-lg">
+                <i class="bi bi-book"></i> View Documentation
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

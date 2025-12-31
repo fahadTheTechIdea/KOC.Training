@@ -1,0 +1,27 @@
+{
+  "mlstudio_connection": {
+    "url": "http://127.0.0.1:5000",
+    "enabled": true,
+    "api_key": "",
+    "timeout": 30
+  },
+  "microsoft_sso": {
+    "enabled": false,
+    "client_id": "",
+    "client_secret": "",
+    "tenant_id": "",
+    "redirect_uri": "http://127.0.0.1:5001/auth/microsoft/callback"
+  },
+  "koc_branding": {
+    "enabled": true,
+    "primary_color": "#003366",
+    "secondary_color": "#FFD700",
+    "logo_path": "static/assets/images/branding/koc_logo.png"
+  },
+  "departments": {
+    "enabled": true,
+    "default": "oil_gas",
+    "available": ["oil_gas", "health_medical", "energy_sustainability", "industrial"]
+  }
+}
+

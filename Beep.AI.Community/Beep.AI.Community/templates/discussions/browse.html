@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Discussions - {{ branding.app_name if branding else 'Beep.AI.Community' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="bi bi-chat-dots" style="color: var(--theme-primary);"></i> Community Discussions</h1>
+        <p class="text-muted">Ask questions, share knowledge, and help others</p>
+    </div>
+    {% if user_id %}
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('discussions.create') }}" class="btn btn-modern btn-modern-primary">
+            <i class="bi bi-plus me-1"></i>New Discussion
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Search -->
+<div class="card-modern mb-4">
+    <div class="card-modern-body">
+        <form method="GET" action="{{ url_for('discussions.browse') }}" class="form-modern">
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <input type="text" class="form-control" name="search" placeholder="Search discussions..." value="{{ search }}">
+                </div>
+                {% if topic_type %}
+                <input type="hidden" name="topic_type" value="{{ topic_type }}">
+                {% endif %}
+                {% if topic_id %}
+                <input type="hidden" name="topic_id" value="{{ topic_id }}">
+                {% endif %}
+                <div class="col-md-4 mb-3">
+                    <button type="submit" class="btn btn-modern btn-modern-primary w-100">
+                        <i class="bi bi-search me-1"></i>Search
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Discussions List -->
+{% if discussions %}
+<div class="list-group-modern">
+    {% for discussion in discussions %}
+    <div class="list-group-item-modern {% if discussion.is_pinned %}discussion-pinned{% endif %}">
+        <div class="d-flex w-100 justify-content-between">
+            <div class="flex-grow-1">
+                <div class="d-flex align-items-center mb-2">
+                    {% if discussion.is_pinned %}
+                    <i class="bi bi-pin-angle-fill me-2" style="color: var(--theme-warning);" title="Pinned"></i>
+                    {% endif %}
+                    {% if discussion.is_solved %}
+                    <i class="bi bi-check-circle-fill me-2" style="color: var(--theme-success);" title="Solved"></i>
+                    {% endif %}
+                    <h5 class="mb-0">
+                        <a href="{{ url_for('discussions.detail', discussion_id=discussion.id) }}" class="text-decoration-none" style="color: var(--text-primary);">
+                            {{ discussion.title }}
+                        </a>
+                    </h5>
+                </div>
+                <p class="mb-2 text-muted">
+                    {{ discussion.content[:200] if discussion.content else 'No content' }}...
+                </p>
+                <div class="d-flex align-items-center flex-wrap">
+                    <small class="text-muted me-3">
+                        <i class="bi bi-person me-1"></i>{{ discussion.author or 'Unknown' }}
+                    </small>
+                    <small class="text-muted me-3">
+                        <i class="bi bi-chat me-1"></i>{{ discussion.reply_count or 0 }} replies
+                    </small>
+                    <small class="text-muted me-3">
+                        <i class="bi bi-hand-thumbs-up me-1"></i>{{ discussion.upvote_count or 0 }} upvotes
+                    </small>
+                    <small class="text-muted">
+                        <i class="bi bi-clock me-1"></i>{{ discussion.created_at.strftime('%Y-%m-%d') if discussion.created_at else '' }}
+                    </small>
+                </div>
+            </div>
+            <div class="ms-3">
+                {% if user_id and hasattr(discussion, 'has_upvoted') and discussion.has_upvoted %}
+                <span class="badge-modern badge-modern-primary">Upvoted</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if total > per_page %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page > 1 %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page - 1 }}{% if search %}&search={{ search }}{% endif %}{% if topic_type %}&topic_type={{ topic_type }}{% endif %}{% if topic_id %}&topic_id={{ topic_id }}{% endif %}">Previous</a>
+        </li>
+        {% endif %}
+        <li class="page-item active">
+            <span class="page-link">Page {{ page }} of {{ (total // per_page) + (1 if total % per_page > 0 else 0) }}</span>
+        </li>
+        {% if page * per_page < total %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page + 1 }}{% if search %}&search={{ search }}{% endif %}{% if topic_type %}&topic_type={{ topic_type }}{% endif %}{% if topic_id %}&topic_id={{ topic_id }}{% endif %}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="alert-modern alert-modern-info">
+    <i class="bi bi-info-circle"></i>
+    <div>
+        <h5>No discussions found</h5>
+        <p>Be the first to start a discussion!</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

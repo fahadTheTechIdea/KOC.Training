@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.title }} - {{ branding.app_name if branding else 'Beep.AI.Community' }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="bi bi-code-slash" style="color: var(--theme-primary);"></i> {{ project.title }}</h1>
+        <p class="text-muted">Shared by {{ project.owner or 'Unknown' }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if project.fork_of_id %}
+        <span class="badge-modern badge-modern-info mb-2">Forked Project</span>
+        {% endif %}
+        <div>
+            <form method="POST" action="{{ url_for('projects.upvote', project_id=project.id) }}" style="display: inline;">
+                <button type="submit" class="btn btn-modern btn-sm" style="border: 1px solid var(--theme-error); color: var(--theme-error);">
+                    <i class="bi bi-heart me-1"></i>{{ project.upvote_count }}
+                </button>
+            </form>
+            <a href="{{ url_for('projects.fork', project_id=project.id) }}" class="btn btn-modern btn-modern-primary btn-sm" onclick="return confirm('This will create a copy of this project in your account. Continue?');">
+                <i class="bi bi-git me-1"></i>Try This Project
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Project Info -->
+<div class="card-modern mb-4">
+    <div class="card-modern-body">
+        <h5 class="card-modern-title">About This Project</h5>
+        <p>{{ project.description or 'No description provided' }}</p>
+        
+        <div class="row mt-3">
+            <div class="col-md-3">
+                <strong>Language:</strong> {{ project.language|upper }}
+            </div>
+            <div class="col-md-3">
+                <strong>Type:</strong> {{ project.kernel_type or 'Notebook' }}
+            </div>
+            <div class="col-md-3">
+                <strong>Forks:</strong> {{ project.fork_count }}
+            </div>
+            <div class="col-md-3">
+                <strong>Upvotes:</strong> {{ project.upvote_count }}
+            </div>
+        </div>
+        
+        {% if project.category %}
+        <div class="mt-2">
+            <span class="badge-modern badge-modern-secondary">{{ project.category }}</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Results/Output -->
+{% if project.output_content %}
+<div class="card-modern mb-4">
+    <div class="card-modern-header">
+        <h5 class="card-modern-title"><i class="bi bi-graph-up me-2"></i>Results</h5>
+    </div>
+    <div class="card-modern-body">
+        <pre class="bg-light p-3"><code>{{ project.output_content }}</code></pre>
+    </div>
+</div>
+{% endif %}
+
+<!-- Code (Collapsible) -->
+{% if project.code_content %}
+<div class="card-modern mb-4">
+    <div class="card-modern-header">
+        <h5 class="card-modern-title">
+            <button class="btn btn-link text-decoration-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#codeCollapse" style="color: var(--text-primary);">
+                <i class="bi bi-code-slash me-2"></i>View Code
+                <i class="bi bi-chevron-down"></i>
+            </button>
+        </h5>
+    </div>
+    <div id="codeCollapse" class="collapse">
+        <div class="card-modern-body">
+            <pre class="bg-dark text-light p-3"><code class="language-python">{{ project.code_content }}</code></pre>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Export Options -->
+<div class="card-modern mb-4">
+    <div class="card-modern-body">
+        <h5 class="card-modern-title"><i class="bi bi-download me-2"></i>Export</h5>
+        <a href="{{ url_for('api_v1.notebooks_export', notebook_id=project.id) }}" class="btn btn-modern btn-modern-secondary">
+            <i class="bi bi-file-code me-1"></i>Export as Jupyter Notebook (.ipynb)
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Syntax highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+{% endblock %}
