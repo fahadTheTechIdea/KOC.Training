@@ -321,10 +321,12 @@
 <!-- Hero Section -->
 <section class="landing-hero">
     <div class="decorative-accent"></div>
-    <div class="container">
+    <div class="container-fluid px-4">
         <div class="hero-content">
-            <div class="row align-items-center">
-                <div class="col-lg-7">
+            <div class="row align-items-center justify-content-center">
+                <div class="col-lg-10">
+                    <div class="row align-items-center">
+                        <div class="col-lg-7">
                     <h1 class="hero-title">
                         {% if branding and branding.logo_url %}
                         <img src="{{ branding.logo_url }}" alt="{{ branding.app_name }}" height="70" class="me-3" style="filter: brightness(0) invert(1);">
@@ -362,38 +364,40 @@
                         {% endif %}
                     </div>
                     
-                    <!-- Icon Grid -->
-                    <div class="hero-icon-grid">
-                        <div class="hero-icon-item">
-                            <img src="{{ url_for('static', filename='images/features/oil-platform.png') }}" alt="Oil & Gas" onerror="this.src='{{ url_for('static', filename='images/features/ai-ml/general/057-oil-platform.png') }}'; this.onerror=null;">
-                            <small>Oil & Gas</small>
+                            <!-- Icon Grid -->
+                            <div class="hero-icon-grid">
+                                <div class="hero-icon-item">
+                                    <img src="{{ url_for('static', filename='assets/icons/oil_gas/057-oil-platform.png') }}" alt="Oil & Gas" onerror="this.style.display='none';">
+                                    <small>Oil & Gas</small>
+                                </div>
+                                <div class="hero-icon-item">
+                                    <img src="{{ url_for('static', filename='assets/icons/ai-ml/001-AI.png') }}" alt="AI/ML" onerror="this.style.display='none';">
+                                    <small>AI/ML</small>
+                                </div>
+                                <div class="hero-icon-item">
+                                    <img src="{{ url_for('static', filename='assets/icons/healthcare/010-stethoscope.png') }}" alt="Medical" onerror="this.style.display='none';">
+                                    <small>Medical</small>
+                                </div>
+                                <div class="hero-icon-item">
+                                    <img src="{{ url_for('static', filename='assets/icons/energy/005-battery.png') }}" alt="Energy" onerror="this.style.display='none';">
+                                    <small>Energy</small>
+                                </div>
+                            </div>
                         </div>
-                        <div class="hero-icon-item">
-                            <img src="{{ url_for('static', filename='images/features/ai-brain.png') }}" alt="AI/ML" onerror="this.src='{{ url_for('static', filename='images/features/ai-ml/general/001-AI.png') }}'; this.onerror=null;">
-                            <small>AI/ML</small>
-                        </div>
-                        <div class="hero-icon-item">
-                            <img src="{{ url_for('static', filename='images/features/healthcare.png') }}" alt="Medical" onerror="this.src='{{ url_for('static', filename='images/features/ai-ml/general/010-stethoscope.png') }}'; this.onerror=null;">
-                            <small>Medical</small>
-                        </div>
-                        <div class="hero-icon-item">
-                            <img src="{{ url_for('static', filename='images/features/energy.png') }}" alt="Energy" onerror="this.src='{{ url_for('static', filename='images/features/ai-ml/general/005-battery.png') }}'; this.onerror=null;">
-                            <small>Energy</small>
+                        <div class="col-lg-5 text-center mt-5 mt-lg-0" style="opacity: 0.12; position: relative; z-index: 1; pointer-events: none;">
+                            {% if branding and branding.logo_url %}
+                            <img src="{{ branding.logo_url }}" 
+                                 alt="{{ branding.app_name }}" 
+                                 class="img-fluid"
+                                 style="max-width: 450px; filter: blur(2px) drop-shadow(0 10px 30px rgba(0,0,0,0.2));">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='assets/icons/ai-ml/022-brain.png') }}" 
+                                 alt="AI Brain" 
+                                 class="img-fluid"
+                                 style="max-width: 400px; opacity: 0.1; filter: blur(2px);">
+                            {% endif %}
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-5 text-center mt-5 mt-lg-0" style="opacity: 0.12; position: relative; z-index: 1; pointer-events: none;">
-                    {% if branding and branding.logo_url %}
-                    <img src="{{ branding.logo_url }}" 
-                         alt="{{ branding.app_name }}" 
-                         class="img-fluid"
-                         style="max-width: 450px; filter: blur(2px) drop-shadow(0 10px 30px rgba(0,0,0,0.2));">
-                    {% else %}
-                    <img src="{{ url_for('static', filename='images/features/ai-ml/general/022-brain.png') }}" 
-                         alt="AI Brain" 
-                         class="img-fluid"
-                         style="max-width: 400px; opacity: 0.1; filter: blur(2px);">
-                    {% endif %}
                 </div>
             </div>
         </div>

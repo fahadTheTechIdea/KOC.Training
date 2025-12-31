@@ -611,79 +611,83 @@
 <!-- Hero Section -->
 <section class="landing-hero">
     <div class="decorative-accent"></div>
-    <div class="container">
+    <div class="container-fluid px-4">
         <div class="hero-content">
-            <div class="row align-items-center">
-                <div class="col-lg-7">
-                    <h1 class="hero-title">
-                        {% if branding and branding.logo_url %}
-                        <img src="{{ branding.logo_url }}" alt="{{ branding.app_name }}" height="70" class="me-3" style="filter: brightness(0) invert(1);">
-                        {% endif %}
-                        <span>
-                            {% if branding and branding.app_name %}
-                                {{ branding.app_name }}
+            <div class="row align-items-center justify-content-center">
+                <div class="col-lg-10">
+                    <div class="row align-items-center">
+                        <div class="col-lg-7">
+                            <h1 class="hero-title">
+                                {% if branding and branding.logo_url %}
+                                <img src="{{ branding.logo_url }}" alt="{{ branding.app_name }}" height="70" class="me-3" style="filter: brightness(0) invert(1);">
+                                {% endif %}
+                                <span>
+                                    {% if branding and branding.app_name %}
+                                        {{ branding.app_name }}
+                                    {% else %}
+                                        KOC A.I. Digital Campus
+                                    {% endif %}
+                                </span>
+                            </h1>
+                            <p class="hero-subtitle">
+                                {% if branding and branding.tagline %}
+                                    {{ branding.tagline }}
+                                {% else %}
+                                    Knowledge Reservoir - Explore, Learn, Excel
+                                {% endif %}
+                            </p>
+                            <p class="hero-description">
+                                KOC A.I. Digital Campus is not just an application; it is a "Knowledge Reservoir." Just as KOC explores the earth for hydrocarbons, this campus explores the workforce for new skills. It provides a safe "sandbox" where employees can refine their expertise before applying it to critical production data, ensuring that KOC's digital future.
+                            </p>
+                            <div class="hero-cta">
+                                {% if current_user %}
+                                <a href="{{ url_for('main.index') }}" class="btn btn-light btn-lg px-4 py-3">
+                                    <i class="fas fa-home me-2"></i> Go to Dashboard
+                                </a>
+                                {% else %}
+                                <a href="{{ url_for('main.login_page') }}" class="btn btn-light btn-lg px-4 py-3">
+                                    <i class="fas fa-sign-in-alt me-2"></i> Get Started
+                                </a>
+                                <a href="#features" class="btn btn-outline-light btn-lg px-4 py-3">
+                                    <i class="fas fa-info-circle me-2"></i> Learn More
+                                </a>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Icon Grid -->
+                            <div class="hero-icon-grid">
+                                <div class="hero-icon-item">
+                                    <img src="{{ url_for('static', filename='assets/icons/oil_gas/057-oil-platform.png') }}" alt="Oil & Gas" onerror="this.style.display='none';">
+                                    <small>Oil & Gas</small>
+                                </div>
+                                <div class="hero-icon-item">
+                                    <img src="{{ url_for('static', filename='assets/icons/ai-ml/001-AI.png') }}" alt="AI/ML" onerror="this.style.display='none';">
+                                    <small>AI/ML</small>
+                                </div>
+                                <div class="hero-icon-item">
+                                    <img src="{{ url_for('static', filename='assets/icons/healthcare/010-stethoscope.png') }}" alt="Medical" onerror="this.style.display='none';">
+                                    <small>Medical</small>
+                                </div>
+                                <div class="hero-icon-item">
+                                    <img src="{{ url_for('static', filename='assets/icons/energy/005-battery.png') }}" alt="Energy" onerror="this.style.display='none';">
+                                    <small>Energy</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-5 text-center mt-5 mt-lg-0" style="opacity: 0.12; position: relative; z-index: 1; pointer-events: none;">
+                            {% if branding and branding.logo_url %}
+                            <img src="{{ branding.logo_url }}" 
+                                 alt="{{ branding.app_name }}" 
+                                 class="img-fluid"
+                                 style="max-width: 450px; filter: blur(2px) drop-shadow(0 10px 30px rgba(0,0,0,0.2));">
                             {% else %}
-                                KOC A.I. Digital Campus
+                            <img src="{{ url_for('static', filename='assets/icons/ai-ml/022-brain.png') }}" 
+                                 alt="AI Community" 
+                                 class="img-fluid"
+                                 style="max-width: 400px; opacity: 0.1; filter: blur(2px);">
                             {% endif %}
-                        </span>
-                    </h1>
-                    <p class="hero-subtitle">
-                        {% if branding and branding.tagline %}
-                            {{ branding.tagline }}
-                        {% else %}
-                            Knowledge Reservoir - Explore, Learn, Excel
-                        {% endif %}
-                    </p>
-                    <p class="hero-description">
-                        KOC A.I. Digital Campus is not just an application; it is a "Knowledge Reservoir." Just as KOC explores the earth for hydrocarbons, this campus explores the workforce for new skills. It provides a safe "sandbox" where employees can refine their expertise before applying it to critical production data, ensuring that KOC's digital future.
-                    </p>
-                    <div class="hero-cta">
-                        {% if current_user %}
-                        <a href="{{ url_for('main.index') }}" class="btn btn-light btn-lg px-4 py-3">
-                            <i class="fas fa-home me-2"></i> Go to Dashboard
-                        </a>
-                        {% else %}
-                        <a href="{{ url_for('main.login_page') }}" class="btn btn-light btn-lg px-4 py-3">
-                            <i class="fas fa-sign-in-alt me-2"></i> Get Started
-                        </a>
-                        <a href="#features" class="btn btn-outline-light btn-lg px-4 py-3">
-                            <i class="fas fa-info-circle me-2"></i> Learn More
-                        </a>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Icon Grid -->
-                    <div class="hero-icon-grid">
-                        <div class="hero-icon-item">
-                            <img src="{{ url_for('static', filename='assets/icons/oil_gas/057-oil-platform.png') }}" alt="Oil & Gas" onerror="this.style.display='none';">
-                            <small>Oil & Gas</small>
-                        </div>
-                        <div class="hero-icon-item">
-                            <img src="{{ url_for('static', filename='assets/icons/ai-ml/001-AI.png') }}" alt="AI/ML" onerror="this.style.display='none';">
-                            <small>AI/ML</small>
-                        </div>
-                        <div class="hero-icon-item">
-                            <img src="{{ url_for('static', filename='assets/icons/healthcare/010-stethoscope.png') }}" alt="Medical" onerror="this.style.display='none';">
-                            <small>Medical</small>
-                        </div>
-                        <div class="hero-icon-item">
-                            <img src="{{ url_for('static', filename='assets/icons/energy/005-battery.png') }}" alt="Energy" onerror="this.style.display='none';">
-                            <small>Energy</small>
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-5 text-center mt-5 mt-lg-0" style="opacity: 0.12; position: relative; z-index: 1; pointer-events: none;">
-                    {% if branding and branding.logo_url %}
-                    <img src="{{ branding.logo_url }}" 
-                         alt="{{ branding.app_name }}" 
-                         class="img-fluid"
-                         style="max-width: 450px; filter: blur(2px) drop-shadow(0 10px 30px rgba(0,0,0,0.2));">
-                    {% else %}
-                    <img src="{{ url_for('static', filename='assets/icons/ai-ml/022-brain.png') }}" 
-                         alt="AI Community" 
-                         class="img-fluid"
-                         style="max-width: 400px; opacity: 0.1; filter: blur(2px);">
-                    {% endif %}
                 </div>
             </div>
         </div>
